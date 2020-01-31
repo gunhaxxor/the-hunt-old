@@ -309,30 +309,10 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('The Hunt'),
-        actions: <Widget>[
-          Center(child: Text(_enabled ? 'PÅ' : 'AV')),
-          Switch(value: _enabled, onChanged: _onClickEnable),
-        ],
-      ),
-      // body: MapSample(_controller),
-      body: GoogleMap(
-        initialCameraPosition: CreateCameraFromPosition(57.708870, 11.974560),
-        mapType: MapType.hybrid,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-        markers: Set<Marker>.of(markers.values),
-        circles: Set<Circle>.of(circles.values),
-=======
     return new MaterialApp(
       title: 'The Hunt',
       theme: new ThemeData(
         primarySwatch: Colors.amber,
->>>>>>> 2c6deb9479de558de32e6bb52e2feef532677e5c
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -350,6 +330,7 @@ class AppState extends State<App> {
             _controller.complete(controller);
           },
           markers: Set<Marker>.of(markers.values),
+          circles: Set<Circle>.of(circles.values),
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.gps_fixed),
@@ -369,7 +350,11 @@ class AppState extends State<App> {
                       Text('$_motionActivity · $_odometer km'),
                       FlatButton(
                         child: const Text('add'),
-                        onPressed: _addMarker,
+                        onPressed: _addCircle,
+                      ),
+                      FlatButton(
+                        child: const Text('clear'),
+                        onPressed: _clearCircles,
                       ),
                       MaterialButton(
                           minWidth: 50.0,
@@ -380,37 +365,6 @@ class AppState extends State<App> {
                           onPressed: _onClickChangePace)
                     ]))),
       ),
-<<<<<<< HEAD
-      bottomNavigationBar: BottomAppBar(
-          child: Container(
-              padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-              child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.gps_not_fixed),
-                      onPressed: _onClickGetCurrentPosition,
-                    ),
-                    Text('$_motionActivity · $_odometer km'),
-                    FlatButton(
-                      child: const Text('add'),
-                      onPressed: _addCircle,
-                    ),
-                    FlatButton(
-                      child: const Text('clear'),
-                      onPressed: _clearCircles,
-                    ),
-                    MaterialButton(
-                        minWidth: 50.0,
-                        child: Icon(
-                            (_isMoving) ? Icons.pause : Icons.play_arrow,
-                            color: Colors.white),
-                        color: (_isMoving) ? Colors.red : Colors.green,
-                        onPressed: _onClickChangePace)
-                  ]))),
-=======
->>>>>>> 2c6deb9479de558de32e6bb52e2feef532677e5c
     );
   }
 }
