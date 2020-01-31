@@ -36,56 +36,56 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MapSample extends StatefulWidget {
-  @override
-  MapSample(final controller);
-  @override
-  State<MapSample> createState() => MapSampleState();
-}
+// class MapSample extends StatefulWidget {
+//   @override
+//   MapSample(final controller);
+//   @override
+//   State<MapSample> createState() => MapSampleState();
+// }
 
-class MapSampleState extends State<MapSample> {
-  Completer<GoogleMapController> _controller = Completer();
+// class MapSampleState extends State<MapSample> {
+//   Completer<GoogleMapController> _controller = Completer();
 
-  Future<void> GotToPos(lat, long) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
-  }
+//   Future<void> GotToPos(lat, long) async {
+//     final GoogleMapController controller = await _controller.future;
+//     controller.animateCamera(
+//         CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
+//   }
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
+  // static final CameraPosition _kGooglePlex = CameraPosition(
+  //   target: LatLng(37.42796133580664, -122.085749655962),
+  //   zoom: 14.4746,
+  // );
 
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  // static final CameraPosition _kLake = CameraPosition(
+  //     bearing: 192.8334901395799,
+  //     target: LatLng(37.43296265331129, -122.08832357078792),
+  //     tilt: 59.440717697143555,
+  //     zoom: 19.151926040649414);
 
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-      body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: Text('To the lake!'),
-        icon: Icon(Icons.directions_boat),
-      ),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return new Scaffold(
+//       body: GoogleMap(
+//         mapType: MapType.hybrid,
+//         initialCameraPosition: _kGooglePlex,
+//         onMapCreated: (GoogleMapController controller) {
+//           _controller.complete(controller);
+//         },
+//       ),
+//       floatingActionButton: FloatingActionButton.extended(
+//         onPressed: _goToTheLake,
+//         label: Text('To the lake!'),
+//         icon: Icon(Icons.directions_boat),
+//       ),
+//     );
+//   }
 
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-  }
-}
+//   Future<void> _goToTheLake() async {
+//     final GoogleMapController controller = await _controller.future;
+//     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+//   }
+// }
 
 CameraPosition CreateCameraFromPosition(lat, long) {
   return CameraPosition(target: LatLng(lat, long), zoom: 20);
@@ -108,6 +108,18 @@ class _MyHomePageState extends State<MyHomePage> {
   String _content;
 
   Completer<GoogleMapController> _controller = Completer();
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(37.42796133580664, -122.085749655962),
+    zoom: 14.4746,
+  );
+
+  static final CameraPosition _kLake = CameraPosition(
+      bearing: 192.8334901395799,
+      target: LatLng(37.43296265331129, -122.08832357078792),
+      tilt: 59.440717697143555,
+      zoom: 19.151926040649414);
+
 
   @override
   void initState() {
@@ -207,16 +219,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (_controller.future != null) {
       print("animating!!");
-      (_controller as GoogleMapController).animateCamera(
+      Future<GoogleMapController> future = _controller.future;
+      future.then((controller) => (controller.animateCamera(
           CameraUpdate.newCameraPosition(CreateCameraFromPosition(
-              location.coords.latitude, location.coords.longitude)));
+              location.coords.latitude, location.coords.longitude)))))
+      .catchError((error) => (print("ERROR when trying to get the GoogleMapController from it's future.")));
+
     } else {
       print("mapscontroller not ready!");
     }
 
     setState(() {
       // _content = encoder.convert(location.toMap());
-      _content = location as String;
+      // _content = location as String;
       _odometer = odometerKM;
     });
   }
@@ -245,6 +260,12 @@ class _MyHomePageState extends State<MyHomePage> {
     print('$event');
   }
 
+  Future<void> GotToPos(lat, long) async {
+      final GoogleMapController controller = await _controller.future;
+      controller.animateCamera(
+          CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
+    }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,7 +276,19 @@ class _MyHomePageState extends State<MyHomePage> {
           Switch(value: _enabled, onChanged: _onClickEnable),
         ],
       ),
-      body: MapSample(_controller),
+      // body: MapSample(_controller),
+      body: GoogleMap(
+        mapType: MapType.hybrid,
+        initialCameraPosition: _kGooglePlex,
+        onMapCreated: (GoogleMapController controller) {
+          _controller.complete(controller);
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _goToTheLake,
+        label: Text('To the lake!'),
+        icon: Icon(Icons.directions_boat),
+      ),
       bottomNavigationBar: BottomAppBar(
           child: Container(
               padding: const EdgeInsets.only(left: 5.0, right: 5.0),
@@ -277,5 +310,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: _onClickChangePace)
                   ]))),
     );
+  }
+
+  Future<void> _goToTheLake() async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }
