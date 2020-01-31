@@ -26,11 +26,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'BackgroundGeolocation Demo',
+      title: 'The Hunt',
       theme: new ThemeData(
         primarySwatch: Colors.amber,
       ),
-      home: new MyHomePage(title: 'BackgroundGeolocation Demo'),
+      home: new MyHomePage(title: 'The Hunt'),
       // home: MapSample(),
     );
   }
@@ -222,7 +222,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar:
-          AppBar(title: const Text('Background Geolocation'), actions: <Widget>[
+          AppBar(title: const Text('The Hunt'), actions: <Widget>[
         Switch(value: _enabled, onChanged: _onClickEnable),
       ]),
       body: SingleChildScrollView(child: Text('$_content')),
