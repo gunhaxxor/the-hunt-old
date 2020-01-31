@@ -20,7 +20,7 @@ class App extends StatefulWidget {
   AppState createState() => AppState();
 }
 
-CameraPosition CreateCameraFromPosition(lat, long) {
+CameraPosition createCameraFromPosition(lat, long) {
   return CameraPosition(target: LatLng(lat, long), zoom: 17);
 }
 
@@ -102,10 +102,11 @@ class AppState extends State<App> {
     }
   }
 
-  void moveMapViewToOwnLocation() {
+  void moveMapViewToOwnLocation() async {
+    if (_mostRecentLocation == null) await getCurrentPosition();
     _controller.future
         .then((controller) => (controller.animateCamera(
-            CameraUpdate.newCameraPosition(CreateCameraFromPosition(
+            CameraUpdate.newCameraPosition(createCameraFromPosition(
                 _mostRecentLocation.coords.latitude,
                 _mostRecentLocation.coords.longitude)))))
         .catchError((error) => (print(
@@ -151,19 +152,21 @@ class AppState extends State<App> {
   }
 
   // Manually fetch the current position.
-  void _onClickGetCurrentPosition() {
-    bg.BackgroundGeolocation.getCurrentPosition(
-            persist: false, // <-- do not persist this location
-            desiredAccuracy: 0, // <-- desire best possible accuracy
-            timeout: 30000, // <-- wait 30s before giving up.
-            samples: 3 // <-- sample 3 location before selecting best.
-            )
-        .then((bg.Location location) {
-      _mostRecentLocation = location;
-      print('[getCurrentPosition] - $location');
-    }).catchError((error) {
+  Future<void> getCurrentPosition() async {
+    try {
+      bg.Location loc = await bg.BackgroundGeolocation.getCurrentPosition(
+          persist: true, // <-- do not persist this location
+          desiredAccuracy: 0, // <-- desire best possible accuracy
+          timeout: 5000, // <-- wait 30s before giving up.
+          samples: 3 // <-- sample 3 location before selecting best.
+          );
+      _mostRecentLocation = loc;
+      print('[getCurrentPosition] - $loc');
+      return Future.value();
+    } catch (error) {
       print('[getCurrentPosition] ERROR: $error');
-    });
+      return Future.error(error);
+    }
   }
 
   ////
@@ -247,11 +250,11 @@ class AppState extends State<App> {
     });
   }
 
-  Future<void> GotToPos(lat, long) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
-  }
+  // Future<void> GotToPos(lat, long) async {
+  //   final GoogleMapController controller = await _controller.future;
+  //   controller.animateCamera(
+  //       CameraUpdate.newCameraPosition(createCameraFromPosition(lat, long)));
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +273,7 @@ class AppState extends State<App> {
         ),
         // body: MapSample(_controller),
         body: GoogleMap(
-          initialCameraPosition: CreateCameraFromPosition(57.708870, 11.974560),
+          initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
           mapType: MapType.hybrid,
           onMapCreated: (GoogleMapController controller) {
             _controller.complete(controller);
@@ -290,7 +293,7 @@ class AppState extends State<App> {
                     children: <Widget>[
                       IconButton(
                         icon: Icon(Icons.gps_not_fixed),
-                        onPressed: _onClickGetCurrentPosition,
+                        onPressed: getCurrentPosition,
                       ),
                       Text('$_motionActivity · $_odometer km'),
                       FlatButton(
