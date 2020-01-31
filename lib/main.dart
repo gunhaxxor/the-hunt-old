@@ -13,15 +13,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
-////
-// For pretty-printing location JSON.  Not a requirement of flutter_background_geolocation
-//
-// import 'dart:convert';
-
-// JsonEncoder encoder = new JsonEncoder.withIndent("     ");
-//
-////
-
 void main() => runApp(new App());
 
 class App extends StatefulWidget {
@@ -29,75 +20,13 @@ class App extends StatefulWidget {
   AppState createState() => AppState();
 }
 
-class AppState extends State<App> {
-  @override
-  void initState() {
-    super.initState();
-    initParse();
-  }
-
-  Future<void> getSomeData() async {
-    var apiResponse = await ParseObject('ParseTableName').getAll();
-
-    if (apiResponse.success) {
-      for (var testObject in apiResponse.result) {
-        print("Parse result: " + testObject.toString());
-      }
-    }
-  }
-
-  Future<void> initParse() async {
-    await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
-        'https://parseapi.back4app.com',
-        // masterKey: keyParseMasterKey, // Required for Back4App and others
-        // clientKey: keyParseClientKey, // Required for some setups
-        debug: true, // When enabled, prints logs to console
-        // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
-        autoSendSessionId: true, // Required for authentication and ACL
-        // securityContext: securityContext, // Again, required for some setups
-        coreStore: await CoreStoreSharedPrefsImp
-            .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
-
-    // Check server is healthy and live - Debug is on in this instance so check logs for result
-    final ParseResponse response = await Parse().healthCheck();
-
-    if (response.success) {
-      print("PARSE CONNECTION HEALTHY");
-    } else {
-      print("PARSE HEALTH NO GOOD");
-    }
-  }
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'The Hunt',
-      theme: new ThemeData(
-        primarySwatch: Colors.amber,
-      ),
-      home: new MyHomePage(title: 'The Hunt'),
-      // home: MapSample(),
-    );
-  }
-}
-
 CameraPosition CreateCameraFromPosition(lat, long) {
-  return CameraPosition(target: LatLng(lat, long), zoom: 15);
+  return CameraPosition(target: LatLng(lat, long), zoom: 17);
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => new _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class AppState extends State<App> {
   bool _isMoving;
-  bool _enabled;
+  bool _enabled = false;
   String _motionActivity;
   String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
@@ -108,6 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    super.initState();
+    initParse();
     _isMoving = false;
     _enabled = false;
     _motionActivity = 'UNKNOWN';
@@ -137,6 +68,38 @@ class _MyHomePageState extends State<MyHomePage> {
         _isMoving = state.isMoving;
       });
     });
+  }
+
+  Future<void> initParse() async {
+    await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
+        'https://parseapi.back4app.com',
+        // masterKey: keyParseMasterKey, // Required for Back4App and others
+        // clientKey: keyParseClientKey, // Required for some setups
+        debug: true, // When enabled, prints logs to console
+        // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
+        autoSendSessionId: true, // Required for authentication and ACL
+        // securityContext: securityContext, // Again, required for some setups
+        coreStore: await CoreStoreSharedPrefsImp
+            .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
+
+    // Check server is healthy and live - Debug is on in this instance so check logs for result
+    final ParseResponse response = await Parse().healthCheck();
+
+    if (response.success) {
+      print("PARSE CONNECTION HEALTHY");
+    } else {
+      print("PARSE HEALTH NO GOOD");
+    }
+  }
+
+  Future<void> getSomeTestData() async {
+    var apiResponse = await ParseObject('GameSession').getAll();
+
+    if (apiResponse.success) {
+      for (var testObject in apiResponse.result) {
+        print("Parse result: " + testObject.toString());
+      }
+    }
   }
 
   void moveMapViewToOwnLocation() {
@@ -292,51 +255,57 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('The Hunt'),
-        actions: <Widget>[
-          Center(child: Text(_enabled ? 'PÅ' : 'AV')),
-          Switch(value: _enabled, onChanged: _onClickEnable),
-        ],
+    return new MaterialApp(
+      title: 'The Hunt',
+      theme: new ThemeData(
+        primarySwatch: Colors.amber,
       ),
-      // body: MapSample(_controller),
-      body: GoogleMap(
-        initialCameraPosition: CreateCameraFromPosition(57.708870, 11.974560),
-        mapType: MapType.hybrid,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-        markers: Set<Marker>.of(markers.values),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('The Hunt'),
+          actions: <Widget>[
+            Center(child: Text(_enabled ? 'PÅ' : 'AV')),
+            Switch(value: _enabled, onChanged: _onClickEnable),
+          ],
+        ),
+        // body: MapSample(_controller),
+        body: GoogleMap(
+          initialCameraPosition: CreateCameraFromPosition(57.708870, 11.974560),
+          mapType: MapType.hybrid,
+          onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+          },
+          markers: Set<Marker>.of(markers.values),
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.gps_fixed),
+          onPressed: moveMapViewToOwnLocation,
+        ),
+        bottomNavigationBar: BottomAppBar(
+            child: Container(
+                padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.gps_not_fixed),
+                        onPressed: _onClickGetCurrentPosition,
+                      ),
+                      Text('$_motionActivity · $_odometer km'),
+                      FlatButton(
+                        child: const Text('add'),
+                        onPressed: _addMarker,
+                      ),
+                      MaterialButton(
+                          minWidth: 50.0,
+                          child: Icon(
+                              (_isMoving) ? Icons.pause : Icons.play_arrow,
+                              color: Colors.white),
+                          color: (_isMoving) ? Colors.red : Colors.green,
+                          onPressed: _onClickChangePace)
+                    ]))),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.gps_fixed),
-        onPressed: moveMapViewToOwnLocation,
-      ),
-      bottomNavigationBar: BottomAppBar(
-          child: Container(
-              padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-              child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.gps_not_fixed),
-                      onPressed: _onClickGetCurrentPosition,
-                    ),
-                    Text('$_motionActivity · $_odometer km'),
-                    FlatButton(
-                      child: const Text('add'),
-                      onPressed: _addMarker,
-                    ),
-                    MaterialButton(
-                        minWidth: 50.0,
-                        child: Icon(
-                            (_isMoving) ? Icons.pause : Icons.play_arrow,
-                            color: Colors.white),
-                        color: (_isMoving) ? Colors.red : Colors.green,
-                        onPressed: _onClickChangePace)
-                  ]))),
     );
   }
 }
