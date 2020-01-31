@@ -8,6 +8,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
     as bg;
 
 import 'dart:async';
+import 'dart:math';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 ////
@@ -106,6 +107,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _motionActivity;
   String _odometer;
   String _content;
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  int _markerIdCounter = 1;
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -260,6 +263,40 @@ class _MyHomePageState extends State<MyHomePage> {
     print('$event');
   }
 
+  static final LatLng center = const LatLng(-33.86711, 151.1947171);
+  void _addMarker() {
+    final int markerCount = markers.length;
+    
+    if (markerCount == 12) {
+      return;
+    }
+    print("Adding marker");
+
+    final String markerIdVal = 'marker_id_$_markerIdCounter';
+    _markerIdCounter++;
+    final MarkerId markerId = MarkerId(markerIdVal);
+
+    final Marker marker = Marker(
+      markerId: markerId,
+      position: LatLng(
+        center.latitude + sin(_markerIdCounter * pi / 6.0) / 20.0,
+        center.longitude + cos(_markerIdCounter * pi / 6.0) / 20.0,
+      ),
+      infoWindow: InfoWindow(title: markerIdVal, snippet: '*'),
+      onTap: () {
+        // _onMarkerTapped(markerId);
+      },
+      onDragEnd: (LatLng position) {
+        // _onMarkerDragEnd(markerId, position);
+      },
+    );
+
+    setState(() {
+      markers[markerId] = marker;
+    });
+  }
+
+
   Future<void> GotToPos(lat, long) async {
       final GoogleMapController controller = await _controller.future;
       controller.animateCamera(
@@ -283,6 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
+        markers: Set<Marker>.of(markers.values),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToTheLake,
@@ -301,6 +339,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: _onClickGetCurrentPosition,
                     ),
                     Text('$_motionActivity · $_odometer km'),
+                    FlatButton(
+                          child: const Text('add'),
+                          onPressed: _addMarker,
+                        ),
                     MaterialButton(
                         minWidth: 50.0,
                         child: Icon(
