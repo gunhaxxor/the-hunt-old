@@ -10,6 +10,8 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+
 ////
 // For pretty-printing location JSON.  Not a requirement of flutter_background_geolocation
 //
@@ -19,9 +21,52 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 //
 ////
 
-void main() => runApp(new MyApp());
+void main() => runApp(new App());
 
-class MyApp extends StatelessWidget {
+class App extends StatefulWidget {
+  @override
+  AppState createState() => AppState();
+}
+
+class AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+    initParse();
+  }
+
+  Future<void> getSomeData() async {
+    var apiResponse = await ParseObject('ParseTableName').getAll();
+
+    if (apiResponse.success) {
+      for (var testObject in apiResponse.result) {
+        print("Parse result: " + testObject.toString());
+      }
+    }
+  }
+
+  Future<void> initParse() async {
+    await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
+        'https://parseapi.back4app.com',
+        // masterKey: keyParseMasterKey, // Required for Back4App and others
+        // clientKey: keyParseClientKey, // Required for some setups
+        debug: true, // When enabled, prints logs to console
+        // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
+        autoSendSessionId: true, // Required for authentication and ACL
+        // securityContext: securityContext, // Again, required for some setups
+        coreStore: await CoreStoreSharedPrefsImp
+            .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
+
+    // Check server is healthy and live - Debug is on in this instance so check logs for result
+    final ParseResponse response = await Parse().healthCheck();
+
+    if (response.success) {
+      print("PARSE CONNECTION HEALTHY");
+    } else {
+      print("PARSE HEALTH NO GOOD");
+    }
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -207,16 +252,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (_controller.future != null) {
       print("animating!!");
-      (_controller as GoogleMapController).animateCamera(
-          CameraUpdate.newCameraPosition(CreateCameraFromPosition(
-              location.coords.latitude, location.coords.longitude)));
+      // (_controller as GoogleMapController).animateCamera(
+      //     CameraUpdate.newCameraPosition(CreateCameraFromPosition(
+      //         location.coords.latitude, location.coords.longitude)));
     } else {
       print("mapscontroller not ready!");
     }
 
     setState(() {
       // _content = encoder.convert(location.toMap());
-      _content = location as String;
+      // _content = location as String;
       _odometer = odometerKM;
     });
   }
@@ -237,7 +282,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     setState(() {
       // _content = encoder.convert(event.toMap());
-      _content = event as String;
+      // _content = event as String;
     });
   }
 
