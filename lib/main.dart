@@ -11,6 +11,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+
 ////
 // For pretty-printing location JSON.  Not a requirement of flutter_background_geolocation
 //
@@ -20,9 +22,52 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 //
 ////
 
-void main() => runApp(new MyApp());
+void main() => runApp(new App());
 
-class MyApp extends StatelessWidget {
+class App extends StatefulWidget {
+  @override
+  AppState createState() => AppState();
+}
+
+class AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+    initParse();
+  }
+
+  Future<void> getSomeData() async {
+    var apiResponse = await ParseObject('ParseTableName').getAll();
+
+    if (apiResponse.success) {
+      for (var testObject in apiResponse.result) {
+        print("Parse result: " + testObject.toString());
+      }
+    }
+  }
+
+  Future<void> initParse() async {
+    await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
+        'https://parseapi.back4app.com',
+        // masterKey: keyParseMasterKey, // Required for Back4App and others
+        // clientKey: keyParseClientKey, // Required for some setups
+        debug: true, // When enabled, prints logs to console
+        // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
+        autoSendSessionId: true, // Required for authentication and ACL
+        // securityContext: securityContext, // Again, required for some setups
+        coreStore: await CoreStoreSharedPrefsImp
+            .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
+
+    // Check server is healthy and live - Debug is on in this instance so check logs for result
+    final ParseResponse response = await Parse().healthCheck();
+
+    if (response.success) {
+      print("PARSE CONNECTION HEALTHY");
+    } else {
+      print("PARSE HEALTH NO GOOD");
+    }
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -37,59 +82,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// class MapSample extends StatefulWidget {
-//   @override
-//   MapSample(final controller);
-//   @override
-//   State<MapSample> createState() => MapSampleState();
-// }
-
-// class MapSampleState extends State<MapSample> {
-//   Completer<GoogleMapController> _controller = Completer();
-
-//   Future<void> GotToPos(lat, long) async {
-//     final GoogleMapController controller = await _controller.future;
-//     controller.animateCamera(
-//         CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
-//   }
-
-  // static final CameraPosition _kGooglePlex = CameraPosition(
-  //   target: LatLng(37.42796133580664, -122.085749655962),
-  //   zoom: 14.4746,
-  // );
-
-  // static final CameraPosition _kLake = CameraPosition(
-  //     bearing: 192.8334901395799,
-  //     target: LatLng(37.43296265331129, -122.08832357078792),
-  //     tilt: 59.440717697143555,
-  //     zoom: 19.151926040649414);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return new Scaffold(
-//       body: GoogleMap(
-//         mapType: MapType.hybrid,
-//         initialCameraPosition: _kGooglePlex,
-//         onMapCreated: (GoogleMapController controller) {
-//           _controller.complete(controller);
-//         },
-//       ),
-//       floatingActionButton: FloatingActionButton.extended(
-//         onPressed: _goToTheLake,
-//         label: Text('To the lake!'),
-//         icon: Icon(Icons.directions_boat),
-//       ),
-//     );
-//   }
-
-//   Future<void> _goToTheLake() async {
-//     final GoogleMapController controller = await _controller.future;
-//     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-//   }
-// }
-
 CameraPosition CreateCameraFromPosition(lat, long) {
-  return CameraPosition(target: LatLng(lat, long), zoom: 20);
+  return CameraPosition(target: LatLng(lat, long), zoom: 15);
 }
 
 class MyHomePage extends StatefulWidget {
@@ -106,29 +100,20 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _enabled;
   String _motionActivity;
   String _odometer;
+<<<<<<< HEAD
   String _content;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   int _markerIdCounter = 1;
+=======
+  bg.Location _mostRecentLocation;
+>>>>>>> 9c707cd33c9047e637ea5353325be6ec11f9bd75
 
   Completer<GoogleMapController> _controller = Completer();
-
-  static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
-
 
   @override
   void initState() {
     _isMoving = false;
     _enabled = false;
-    _content = '';
     _motionActivity = 'UNKNOWN';
     _odometer = '0';
 
@@ -156,6 +141,16 @@ class _MyHomePageState extends State<MyHomePage> {
         _isMoving = state.isMoving;
       });
     });
+  }
+
+  void moveMapViewToOwnLocation() {
+    _controller.future
+        .then((controller) => (controller.animateCamera(
+            CameraUpdate.newCameraPosition(CreateCameraFromPosition(
+                _mostRecentLocation.coords.latitude,
+                _mostRecentLocation.coords.longitude)))))
+        .catchError((error) => (print(
+            "ERROR when trying to get the GoogleMapController from it's future.")));
   }
 
   void _onClickEnable(enabled) {
@@ -205,6 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
             samples: 3 // <-- sample 3 location before selecting best.
             )
         .then((bg.Location location) {
+      _mostRecentLocation = location;
       print('[getCurrentPosition] - $location');
     }).catchError((error) {
       print('[getCurrentPosition] ERROR: $error');
@@ -217,20 +213,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onLocation(bg.Location location) {
     print('[location] - $location');
+    _mostRecentLocation = location;
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
-
-    if (_controller.future != null) {
-      print("animating!!");
-      Future<GoogleMapController> future = _controller.future;
-      future.then((controller) => (controller.animateCamera(
-          CameraUpdate.newCameraPosition(CreateCameraFromPosition(
-              location.coords.latitude, location.coords.longitude)))))
-      .catchError((error) => (print("ERROR when trying to get the GoogleMapController from it's future.")));
-
-    } else {
-      print("mapscontroller not ready!");
-    }
+    // Future<GoogleMapController> future = _controller.future;
+    // future
+    //     .then((controller) => (controller.animateCamera(
+    //         CameraUpdate.newCameraPosition(CreateCameraFromPosition(
+    //             location.coords.latitude, location.coords.longitude)))))
+    //     .catchError((error) => (print(
+    //         "ERROR when trying to get the GoogleMapController from it's future.")));
 
     setState(() {
       // _content = encoder.convert(location.toMap());
@@ -255,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     setState(() {
       // _content = encoder.convert(event.toMap());
-      _content = event as String;
+      // _content = event as String;
     });
   }
 
@@ -263,6 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
     print('$event');
   }
 
+<<<<<<< HEAD
   static final LatLng center = const LatLng(-33.86711, 151.1947171);
   void _addMarker() {
     final int markerCount = markers.length;
@@ -303,6 +296,8 @@ class _MyHomePageState extends State<MyHomePage> {
           CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
     }
   
+=======
+>>>>>>> 9c707cd33c9047e637ea5353325be6ec11f9bd75
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,17 +310,16 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       // body: MapSample(_controller),
       body: GoogleMap(
+        initialCameraPosition: CreateCameraFromPosition(57.708870, 11.974560),
         mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
         markers: Set<Marker>.of(markers.values),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: Text('To the lake!'),
-        icon: Icon(Icons.directions_boat),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.gps_fixed),
+        onPressed: moveMapViewToOwnLocation,
       ),
       bottomNavigationBar: BottomAppBar(
           child: Container(
@@ -335,7 +329,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     IconButton(
-                      icon: Icon(Icons.gps_fixed),
+                      icon: Icon(Icons.gps_not_fixed),
                       onPressed: _onClickGetCurrentPosition,
                     ),
                     Text('$_motionActivity · $_odometer km'),
@@ -352,10 +346,5 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: _onClickChangePace)
                   ]))),
     );
-  }
-
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }
