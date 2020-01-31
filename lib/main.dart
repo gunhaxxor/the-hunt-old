@@ -13,9 +13,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 ////
 // For pretty-printing location JSON.  Not a requirement of flutter_background_geolocation
 //
-import 'dart:convert';
+// import 'dart:convert';
 
-JsonEncoder encoder = new JsonEncoder.withIndent("     ");
+// JsonEncoder encoder = new JsonEncoder.withIndent("     ");
 //
 ////
 
@@ -38,11 +38,19 @@ class MyApp extends StatelessWidget {
 
 class MapSample extends StatefulWidget {
   @override
+  MapSample(final controller);
+  @override
   State<MapSample> createState() => MapSampleState();
 }
 
 class MapSampleState extends State<MapSample> {
   Completer<GoogleMapController> _controller = Completer();
+
+  Future<void> GotToPos(lat, long) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
+  }
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -79,6 +87,10 @@ class MapSampleState extends State<MapSample> {
   }
 }
 
+CameraPosition CreateCameraFromPosition(lat, long) {
+  return CameraPosition(target: LatLng(lat, long), zoom: 20);
+}
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -95,6 +107,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _odometer;
   String _content;
 
+  Completer<GoogleMapController> _controller = Completer();
+
   @override
   void initState() {
     _isMoving = false;
@@ -104,7 +118,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _odometer = '0';
 
     // 1.  Listen to events (See docs for all 12 available events).
-    bg.BackgroundGeolocation.onLocation(_onLocation);
+    bg.BackgroundGeolocation.onLocation(_onLocation, (bg.LocationError error) {
+      print("locationError] - $error");
+    });
     bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
     bg.BackgroundGeolocation.onActivityChange(_onActivityChange);
     bg.BackgroundGeolocation.onProviderChange(_onProviderChange);
@@ -113,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // 2.  Configure the plugin
     bg.BackgroundGeolocation.ready(bg.Config(
             desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-            distanceFilter: 2.0,
+            distanceFilter: 0.0,
             stopOnTerminate: false,
             startOnBoot: true,
             debug: true,
@@ -189,8 +205,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
 
+    if (_controller.future != null) {
+      print("animating!!");
+      (_controller as GoogleMapController).animateCamera(
+          CameraUpdate.newCameraPosition(CreateCameraFromPosition(
+              location.coords.latitude, location.coords.longitude)));
+    } else {
+      print("mapscontroller not ready!");
+    }
+
     setState(() {
-      _content = encoder.convert(location.toMap());
+      // _content = encoder.convert(location.toMap());
+      _content = location as String;
       _odometer = odometerKM;
     });
   }
@@ -210,7 +236,8 @@ class _MyHomePageState extends State<MyHomePage> {
     print('$event');
 
     setState(() {
-      _content = encoder.convert(event.toMap());
+      // _content = encoder.convert(event.toMap());
+      _content = event as String;
     });
   }
 
@@ -221,11 +248,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: const Text('Background Geolocation'), actions: <Widget>[
-        Switch(value: _enabled, onChanged: _onClickEnable),
-      ]),
-      body: SingleChildScrollView(child: Text('$_content')),
+      appBar: AppBar(
+        title: const Text('Background Geolocation'),
+        actions: <Widget>[
+          Center(child: Text(_enabled ? 'PÅ' : 'AV')),
+          Switch(value: _enabled, onChanged: _onClickEnable),
+        ],
+      ),
+      body: MapSample(_controller),
       bottomNavigationBar: BottomAppBar(
           child: Container(
               padding: const EdgeInsets.only(left: 5.0, right: 5.0),
