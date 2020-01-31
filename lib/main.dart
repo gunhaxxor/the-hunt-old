@@ -30,7 +30,19 @@ class AppState extends State<App> {
   String _motionActivity;
   String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+  Map<CircleId, Circle> circles = <CircleId, Circle>{};
+  int _circleIdCounter = 1;
   int _markerIdCounter = 1;
+  int fillColorsIndex = 0;
+  int strokeColorsIndex = 0;
+  List<Color> colors = <Color>[
+    Colors.purple,
+    Colors.red,
+    Colors.green,
+    Colors.pink,
+  ];
+  int widthsIndex = 0;
+  List<int> widths = <int>[10, 20, 5];
   bg.Location _mostRecentLocation;
 
   Completer<GoogleMapController> _controller = Completer();
@@ -217,7 +229,7 @@ class AppState extends State<App> {
     print('$event');
   }
 
-  static final LatLng center = const LatLng(-33.86711, 151.1947171);
+  static final LatLng center = const LatLng(57.708612, 11.973289);
   void _addMarker() {
     final int markerCount = markers.length;
 
@@ -250,11 +262,53 @@ class AppState extends State<App> {
     });
   }
 
-  // Future<void> GotToPos(lat, long) async {
-  //   final GoogleMapController controller = await _controller.future;
-  //   controller.animateCamera(
-  //       CameraUpdate.newCameraPosition(createCameraFromPosition(lat, long)));
-  // }
+  void _addCircle() {
+    final int circleCount = circles.length;
+
+    if (circleCount == 12) {
+      return;
+    }
+
+    final String circleIdVal = 'circle_id_$_circleIdCounter';
+    _circleIdCounter++;
+    final CircleId circleId = CircleId(circleIdVal);
+
+    final Circle circle = Circle(
+      circleId: circleId,
+      consumeTapEvents: true,
+      strokeColor: Colors.orange,
+      fillColor: Colors.transparent,
+      strokeWidth: 10,
+      center: LatLng(
+        center.latitude + sin(_circleIdCounter * pi / 6.0) / 20.0,
+        center.longitude + cos(_circleIdCounter * pi / 6.0) / 20.0,
+      ),
+      radius: 50,
+      onTap: () {
+        _onCircleTapped(circleId);
+      },
+    );
+
+    setState(() {
+      circles[circleId] = circle;
+    });
+  }
+
+  void _clearCircles() {
+    setState(() {
+      circles.clear();
+    });
+  }
+
+  void _onCircleTapped(CircleId circleId) {
+    // TODO
+  }
+
+  Future<void> goToPos(lat, long) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(createCameraFromPosition(lat, long)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +333,7 @@ class AppState extends State<App> {
             _controller.complete(controller);
           },
           markers: Set<Marker>.of(markers.values),
+          circles: Set<Circle>.of(circles.values),
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.gps_fixed),
@@ -298,7 +353,11 @@ class AppState extends State<App> {
                       Text('$_motionActivity · $_odometer km'),
                       FlatButton(
                         child: const Text('add'),
-                        onPressed: _addMarker,
+                        onPressed: _addCircle,
+                      ),
+                      FlatButton(
+                        child: const Text('clear'),
+                        onPressed: _clearCircles,
                       ),
                       MaterialButton(
                           minWidth: 50.0,
