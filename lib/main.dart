@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.amber,
       ),
       home: new MyHomePage(title: 'BackgroundGeolocation Demo'),
-      // home: MapSample(),
+      //home: MapSample(),
     );
   }
 }
