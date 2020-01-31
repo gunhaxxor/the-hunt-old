@@ -100,13 +100,9 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _enabled;
   String _motionActivity;
   String _odometer;
-<<<<<<< HEAD
-  String _content;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   int _markerIdCounter = 1;
-=======
   bg.Location _mostRecentLocation;
->>>>>>> 9c707cd33c9047e637ea5353325be6ec11f9bd75
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -255,11 +251,10 @@ class _MyHomePageState extends State<MyHomePage> {
     print('$event');
   }
 
-<<<<<<< HEAD
   static final LatLng center = const LatLng(-33.86711, 151.1947171);
   void _addMarker() {
     final int markerCount = markers.length;
-    
+
     if (markerCount == 12) {
       return;
     }
@@ -289,15 +284,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
   Future<void> GotToPos(lat, long) async {
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(
-          CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
-    }
-  
-=======
->>>>>>> 9c707cd33c9047e637ea5353325be6ec11f9bd75
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(CreateCameraFromPosition(lat, long)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -334,9 +326,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Text('$_motionActivity · $_odometer km'),
                     FlatButton(
-                          child: const Text('add'),
-                          onPressed: _addMarker,
-                        ),
+                      child: const Text('add'),
+                      onPressed: _addMarker,
+                    ),
                     MaterialButton(
                         minWidth: 50.0,
                         child: Icon(
