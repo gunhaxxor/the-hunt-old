@@ -344,6 +344,7 @@ class AppState extends State<App> {
   }
 
   void _clearCircles() {
+    _circleIdCounter = 0;
     setState(() {
       circles.clear();
     });
