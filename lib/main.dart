@@ -196,6 +196,7 @@ class AppState extends State<App> {
   void _onLocation(bg.Location location) {
     print('[location] - $location');
     _mostRecentLocation = location;
+    _addCircle();
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
     // Future<GoogleMapController> future = _controller.future;
