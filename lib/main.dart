@@ -1,4 +1,3 @@
-import 'dart:convert';
 // import 'dart:html';
 
 /**
@@ -13,10 +12,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:device_info/device_info.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
 import 'package:gunnars_test/screens/lobbyscreen.dart';
@@ -25,20 +21,21 @@ import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
+import 'package:gunnars_test/timerThingy.dart';
+
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:gunnars_test/services/parseServerInteractions.dart';
+import 'package:gunnars_test/services/locationService.dart';
 
-import 'data/gameModel.dart';
+import 'package:gunnars_test/data/gameModel.dart';
 
 Future main() async {
   await DotEnv().load('.env');
-  runApp(MaterialApp(
-    home: MainScreen(), // becomes the route named '/'
-    routes: <String, WidgetBuilder> {
-      '/game': (BuildContext context) => App(),
-      '/lobby': (BuildContext context) => LobbyScreen(),
-    }
-  ));
+  runApp(MaterialApp(home: MainScreen(), // becomes the route named '/'
+      routes: <String, WidgetBuilder>{
+        '/game': (BuildContext context) => App(),
+        '/lobby': (BuildContext context) => LobbyScreen(),
+      }));
 }
 
 class App extends StatefulWidget {
@@ -51,8 +48,8 @@ class App extends StatefulWidget {
 // }
 
 class AppState extends State<App> {
-  bool _isMoving;
-  bool _enabled = false;
+  // bool _isMoving;
+  // bool _enabled = false;
   bool _isPrey = true;
   // String _motionActivity;
   // String _odometer;
@@ -60,106 +57,38 @@ class AppState extends State<App> {
   Map<CircleId, Circle> circles = <CircleId, Circle>{};
   int _circleIdCounter = 1;
   int _markerIdCounter = 1;
-  bg.Location _mostRecentLocation;
 
-  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _controller;
   String _mapStyle;
 
   String _gameSessionName;
   String _userId;
   String _userPassword;
+  TimerThingy _timerThingy;
+  int _timeToReveal;
   AppColors get colors => AppColors();
 
   @override
   void initState() {
     super.initState();
-    createUserCredentailsFromHardware().then((_) {
-      initParse(_userPassword, _userPassword).then((_) {
-        getAllGameSessions().then((gameSessionsString) {
-          _gameSessionName = gameSessionsString;
-        });
-      });
-    });
 
-    _isMoving = false;
-    _enabled = false;
+    //_isMoving = false;
+    //_enabled = false;
     _isPrey = true;
+
+    // _timerThingy = TimerThingy(30,
+    //     () => MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation));
     // _motionActivity = 'UNKNOWN';
     // _odometer = '0';
     rootBundle.loadString("assets/mapStyle.json").then((string) {
       _mapStyle = string;
     });
-
-    // 1.  Listen to events (See docs for all 12 available events).
-    bg.BackgroundGeolocation.onLocation(_onLocation, (bg.LocationError error) {
-      print("locationError] - $error");
-    });
-    bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
-    bg.BackgroundGeolocation.onActivityChange(_onActivityChange);
-    bg.BackgroundGeolocation.onProviderChange(_onProviderChange);
-    bg.BackgroundGeolocation.onConnectivityChange(_onConnectivityChange);
-
-    // 2.  Configure the plugin
-    bg.BackgroundGeolocation.ready(bg.Config(
-            desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-            distanceFilter: 0.0,
-            stopOnTerminate: false,
-            startOnBoot: true,
-            debug: true,
-            logLevel: bg.Config.LOG_LEVEL_VERBOSE,
-            reset: true))
-        .then((bg.State state) {
-      setState(() {
-        _enabled = state.enabled;
-        _isMoving = state.isMoving;
-      });
-    });
-  }
-
-  Future<void> createUserCredentailsFromHardware() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    try {
-      if (Platform.isAndroid) {
-        _userPassword = (await deviceInfo.androidInfo).androidId;
-      } else if (Platform.isIOS) {
-        _userPassword = (await deviceInfo.iosInfo).identifierForVendor;
-      }
-      _userId = sha256.convert(utf8.encode(_userPassword)).toString();
-      return Future.value();
-    } catch (error) {
-      print("NOOOOOOOOOOOO!!!!"); // NOOOOOOOOOOOO!!!!
-      return Future.error(error);
-    }
   }
 
   void _onClickRole(isPrey) {
     setState(() {
       _isPrey = isPrey;
     });
-  }
-
-  void _onClickEnable(enabled) {
-    if (enabled) {
-      bg.BackgroundGeolocation.start().then((bg.State state) {
-        print('[start] success $state');
-        setState(() {
-          _enabled = state.enabled;
-          _isMoving = state.isMoving;
-        });
-      });
-    } else {
-      bg.BackgroundGeolocation.stop().then((bg.State state) {
-        print('[stop] success: $state');
-        // Reset odometer.
-        bg.BackgroundGeolocation.setOdometer(0.0);
-
-        setState(() {
-          // _odometer = '0.0';
-          _enabled = state.enabled;
-          _isMoving = state.isMoving;
-        });
-      });
-    }
   }
 
   void _startCountdown() {
@@ -183,92 +112,9 @@ class AppState extends State<App> {
     });
   }
 
-  // Manually toggle the tracking state:  moving vs stationary
-  void _onClickChangePace() {
-    setState(() {
-      _isMoving = !_isMoving;
-    });
-    print("[onClickChangePace] -> $_isMoving");
-
-    bg.BackgroundGeolocation.changePace(_isMoving).then((bool isMoving) {
-      print('[changePace] success $isMoving');
-    }).catchError((e) {
-      print('[changePace] ERROR: ' + e.code.toString());
-    });
-  }
-
-  // Manually fetch the current position.
-  Future<void> getCurrentPosition() async {
-    try {
-      bg.Location loc = await bg.BackgroundGeolocation.getCurrentPosition(
-          persist: true, // <-- do not persist this location
-          desiredAccuracy: 0, // <-- desire best possible accuracy
-          timeout: 5000, // <-- wait 30s before giving up.
-          samples: 3 // <-- sample 3 location before selecting best.
-          );
-      _mostRecentLocation = loc;
-      print('[getCurrentPosition] - $loc');
-      return Future.value();
-    } catch (error) {
-      print('[getCurrentPosition] ERROR: $error');
-      return Future.error(error);
-    }
-  }
-
   ////
   // Event handlers
   //
-
-  void _onLocation(bg.Location location) {
-    print('[location] - $location');
-    _mostRecentLocation = location;
-
-    String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
-
-    setState(() {
-      // _content = encoder.convert(location.toMap());
-      // _content = location as String;
-      // _odometer = odometerKM;
-    });
-
-    sendLocationToParse(location);
-  }
-
-  void sendLocationToParse(bg.Location location) {
-    ParseGeoPoint latlong = new ParseGeoPoint();
-    latlong.latitude = location.coords.latitude;
-    latlong.longitude = location.coords.longitude;
-    ParseObject loc = ParseObject("Location")
-      ..set('heading', location.coords.heading)
-      ..set('coords', latlong)
-      ..set('visibleByDefault', true);
-
-    loc.save();
-  }
-
-  void _onMotionChange(bg.Location location) {
-    print('[motionchange] - $location');
-  }
-
-  void _onActivityChange(bg.ActivityChangeEvent event) {
-    print('[activitychange] - $event');
-    setState(() {
-      // _motionActivity = event.activity;
-    });
-  }
-
-  void _onProviderChange(bg.ProviderChangeEvent event) {
-    print('$event');
-
-    setState(() {
-      // _content = encoder.convert(event.toMap());
-      // _content = event as String;
-    });
-  }
-
-  void _onConnectivityChange(bg.ConnectivityChangeEvent event) {
-    print('$event');
-  }
 
   static final LatLng center = const LatLng(57.708612, 11.973289);
   void _addMarker() {
@@ -304,10 +150,6 @@ class AppState extends State<App> {
   }
 
   void _addCircle(double latitude, double longitude, bool isHunter) {
-    final int circleCount = circles.length;
-    // double latitude = _mostRecentLocation.coords.latitude;
-    // double longitude = _mostRecentLocation.coords.longitude;
-
     Color circleColor = colors.prey;
     double circleRadius = 50;
     if (isHunter) {
@@ -364,7 +206,6 @@ class AppState extends State<App> {
         ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
         _addCircle(point.latitude, point.longitude, false);
       }
-      
     });
     getLocationsForGameSession('RVpzsL3tST', true).then((response) {
       List<ParseObject> responsObjects = response;
@@ -372,88 +213,118 @@ class AppState extends State<App> {
         ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
         _addCircle(point.latitude, point.longitude, true);
       }
-      
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'The Hunt',
-      theme: new ThemeData(
-        primarySwatch: Colors.amber,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('The Hunt'),
-          actions: <Widget>[
-            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-            Switch(value: _isPrey, onChanged: _onClickRole),
-            Center(child: Text(_enabled ? 'PÅ' : 'AV')),
-            Switch(value: _enabled, onChanged: _onClickEnable),
-          ],
-        ),
-        // body: MapSample(_controller),
-        body: GoogleMap(
-          initialCameraPosition:
-              MapUtil.createCameraFromPosition(57.708870, 11.974560),
-          mapType: MapType.normal,
-          onMapCreated: (GoogleMapController controller) {
-            controller.setMapStyle(_mapStyle).then((_) {
-              print("styling map!!!");
-            }).catchError((error) {
-              print("ERROR while styling map");
-              return null;
-            });
-            _controller.complete(controller);
-          },
-          markers: Set<Marker>.of(markers.values),
-          circles: Set<Circle>.of(circles.values),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.gps_fixed),
-          onPressed: () =>
-              MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation),
-        ),
-        bottomNavigationBar: BottomAppBar(
-            child: Container(
-                padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.gps_not_fixed),
-                        onPressed: getCurrentPosition,
-                      ),
-                      // Text('$_motionActivity · $_odometer km'),
-                      FlatButton(
-                        child: const Text('Start'),
-                        onPressed: _startCountdown,
-                      ),
-                      FlatButton(
-                        child: const Text('Quit'),
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/');
-                        },
-                      ),
-                      FlatButton(
-                        child: const Text('load'),
-                        onPressed: _getLocations,
-                      ),
-                      FlatButton(
-                        child: const Text('clear'),
-                        onPressed: _clearCircles,
-                      ),
-                      MaterialButton(
-                          minWidth: 50.0,
-                          child: Icon(
-                              (_isMoving) ? Icons.pause : Icons.play_arrow,
-                              color: Colors.white),
-                          color: (_isMoving) ? Colors.red : Colors.green,
-                          onPressed: _onClickChangePace)
-                    ]))),
-      ),
-    );
+    return ChangeNotifierProvider<LocationService>(
+        create: (context) => LocationService(),
+        child: MaterialApp(
+          title: 'The Hunt',
+          theme: new ThemeData(
+            primarySwatch: Colors.amber,
+          ),
+          home: Scaffold(
+            appBar: AppBar(
+              title: const Text('The Hunt'),
+              actions: <Widget>[
+                Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+                Switch(value: _isPrey, onChanged: _onClickRole),
+                Consumer<LocationService>(
+                  builder: (context, locationService, child) {
+                    return Center(
+                        child: Text(locationService.enabled ? 'PÅ' : 'AV'));
+                  },
+                ),
+                Consumer<LocationService>(
+                  builder: (context, locationService, child) {
+                    return Switch(
+                        value: locationService.enabled,
+                        onChanged: locationService.OnClickEnable);
+                  },
+                )
+              ],
+            ),
+            // body: MapSample(_controller),
+            body: GoogleMap(
+              initialCameraPosition:
+                  MapUtil.createCameraFromPosition(57.708870, 11.974560),
+              mapType: MapType.normal,
+              onMapCreated: (GoogleMapController controller) {
+                controller.setMapStyle(_mapStyle).then((_) {
+                  print("styling map!!!");
+                }).catchError((error) {
+                  print("ERROR while styling map");
+                  return null;
+                });
+                _controller = controller;
+              },
+              markers: Set<Marker>.of(markers.values),
+              circles: Set<Circle>.of(circles.values),
+            ),
+            floatingActionButton: Consumer<LocationService>(
+                builder: (context, locationService, child) {
+              return FloatingActionButton(
+                child: Icon(Icons.gps_fixed),
+                onPressed: () => MapUtil.moveMapViewToLocation(
+                    _controller, locationService.mostRecentLocation),
+              );
+            }),
+            bottomNavigationBar: BottomAppBar(
+              child: Container(
+                  padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                  child: Consumer<LocationService>(
+                    builder: (context, locationService, child) {
+                      return Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            IconButton(
+                              icon: Icon(Icons.gps_not_fixed),
+                              onPressed: () =>
+                                  locationService.GetCurrentPosition(),
+                            ),
+                            // Text('$_motionActivity · $_odometer km'),
+                            FlatButton(
+                              child: const Text('Start'),
+                              onPressed: _startCountdown,
+                            ),
+                            FlatButton(
+                              child: const Text('Quit'),
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(context, '/');
+                              },
+                            ),
+                            FlatButton(
+                              child: const Text('add'),
+                              onPressed: () => _addCircle(
+                                  locationService
+                                      .mostRecentLocation.coords.latitude,
+                                  locationService
+                                      .mostRecentLocation.coords.longitude,
+                                  false),
+                            ),
+                            FlatButton(
+                              child: const Text('clear'),
+                              onPressed: _clearCircles,
+                            ),
+                            MaterialButton(
+                                minWidth: 50.0,
+                                child: Icon(
+                                    (locationService.isMoving)
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    color: Colors.white),
+                                color: (locationService.isMoving)
+                                    ? Colors.red
+                                    : Colors.green,
+                                onPressed: locationService.OnClickChangePace)
+                          ]);
+                    },
+                  )),
+            ),
+          ),
+        ));
   }
 }

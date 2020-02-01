@@ -1,7 +1,8 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapUtil {
-  static void moveMapViewToLocation(controller, location) async {
+  static void moveMapViewToLocation(
+      GoogleMapController controller, location) async {
     // if (location == null) await getCurrentPosition();
     controller.animateCamera(CameraUpdate.newCameraPosition(
         createCameraFromPosition(

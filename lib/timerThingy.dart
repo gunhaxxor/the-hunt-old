@@ -1,11 +1,63 @@
+// import 'package:quiver/async.dart';
 import 'dart:async';
 
-// class TimerThingy {
-//   void _startCountdown() {
-//     CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
-//       ..onData((data) {
-//         print(data.remaining.inSeconds + 1);
-//       })
-//       ..onDone(_startGame);
-//   }
-// }
+class TimerThingy {
+  int _interval;
+  bool _intervalChanged = false;
+  Timer _timer;
+  Stopwatch _stopWatch;
+  void Function() _callback;
+
+  TimerThingy(int interval, void Function() callback,
+      [triggerInstantly = false]) {
+    print("TimerThingy created");
+    _interval = interval;
+    _stopWatch = new Stopwatch();
+    _callback = callback;
+
+    Duration dur = Duration(seconds: _interval);
+    _timer = Timer.periodic(dur, triggerFunction);
+    _stopWatch.start();
+    if (triggerInstantly) {
+      _callback();
+    }
+  }
+
+  void triggerFunction(Timer timer) {
+    print("TIMERTHINGY TRIGGERED");
+    _stopWatch.reset();
+    _callback();
+
+    if (_intervalChanged) {
+      _intervalChanged = false;
+      _timer.cancel();
+      Duration dur = Duration(seconds: _interval);
+      _timer = Timer.periodic(dur, triggerFunction);
+    }
+  }
+
+  int secondsLeft() {
+    int secondsLeft = _interval - _stopWatch.elapsedMilliseconds ~/ 1000;
+    print("SECONDSLEFT: $secondsLeft");
+    return secondsLeft;
+  }
+
+  void stop() {
+    _timer.cancel();
+    _stopWatch.stop();
+  }
+
+  changeIntervalOnNextTrigger(int interval) {
+    _intervalChanged = true;
+    _interval = interval;
+  }
+
+  void changeIntervalNow(int interval) {
+    _timer.cancel();
+    Duration dur = Duration(seconds: interval);
+    _timer = Timer.periodic(dur, (timer) {
+      _stopWatch.reset();
+      _callback();
+    });
+  }
+}

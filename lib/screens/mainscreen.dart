@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:gunnars_test/main.dart';
 
-class MainScreen extends StatelessWidget {
+import 'package:gunnars_test/services/parseServerInteractions.dart';
+
+class MainScreen extends StatefulWidget {
+  @override
+  State<MainScreen> createState() => MainScreenState();
+}
+
+class MainScreenState extends State<MainScreen> {
+  bool _nameAvailable = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    createUserCredentailsFromHardware().then((Map<String, String> credentials) {
+      initParse(credentials["userId"], credentials["userPassword"]).then((_) {
+        // getAllGameSessions().then((gameSessionsString) {
+        //   _gameSessionName = gameSessionsString;
+        // });
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,8 +49,8 @@ class MainScreen extends StatelessWidget {
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 4
-                          ..color = Colors.orange[700],
-                      ),  
+                          ..color = Colors.orange[600],
+                      ),
                     ),
                     Text(
                       "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the prey to catch it.",
@@ -55,8 +78,13 @@ class MainScreen extends StatelessWidget {
                           border: OutlineInputBorder(),
                           labelText: 'Game Name',
                         ),
-                        onChanged: (value) {
-                          print(value);
+                        onChanged: (value) async {
+                          bool free = await isNameAvailable(value);
+
+                          print(free);
+                          setState(() {
+                            _nameAvailable = free;
+                          });
                         },
                       ),
                     ),
