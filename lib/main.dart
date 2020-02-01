@@ -309,8 +309,10 @@ class AppState extends State<App> {
     // double longitude = _mostRecentLocation.coords.longitude;
 
     Color circleColor = colors.prey;
+    double circleRadius = 50;
     if (isHunter) {
       circleColor = colors.hunter;
+      circleRadius = 25;
     }
     // if (circleCount == 12) {
     //   return;
@@ -332,7 +334,7 @@ class AppState extends State<App> {
         latitude,
         longitude,
       ),
-      radius: 50,
+      radius: circleRadius,
       onTap: () {
         _onCircleTapped(circleId);
       },
