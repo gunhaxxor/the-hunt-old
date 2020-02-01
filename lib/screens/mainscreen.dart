@@ -10,6 +10,7 @@ class MainScreen extends StatelessWidget {
       ),
       body: Center(
         child: Container(
+          color: Colors.amberAccent[200],
           padding: const EdgeInsets.only(left: 30.0, right: 30.0),
           child: Column(
             children: <Widget>[
@@ -26,7 +27,7 @@ class MainScreen extends StatelessWidget {
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 4
-                          ..color = Colors.orange[600],
+                          ..color = Colors.orange[700],
                       ),  
                     ),
                   ],
@@ -54,15 +55,17 @@ class MainScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly ,
                 children: <Widget>[
                   RaisedButton(
+                    color: Colors.orange[700],
                     child: Text('Host'),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/game');
+                      Navigator.pushReplacementNamed(context, '/lobby');
                     },
                   ),
                   RaisedButton(
+                    color: Colors.orange[700],
                     child: const Text('Join'),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/game');
+                      Navigator.pushReplacementNamed(context, '/lobby');
                     },
                   ),
                 ],

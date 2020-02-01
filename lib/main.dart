@@ -19,6 +19,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
+import 'package:gunnars_test/screens/lobbyscreen.dart';
 import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,7 @@ Future main() async {
     home: MainScreen(), // becomes the route named '/'
     routes: <String, WidgetBuilder> {
       '/game': (BuildContext context) => App(),
+      '/lobby': (BuildContext context) => LobbyScreen(),
     }
   ));
 }
