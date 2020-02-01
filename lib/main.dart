@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
+import 'package:quiver/async.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
@@ -163,6 +164,25 @@ class AppState extends State<App> {
         });
       });
     }
+  }
+
+  void _startCountdown() {
+    print("Countdown started");
+    setState(() {
+      // TODO game is starting
+    });
+
+    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data){
+    })..onData((data){
+      print(data.remaining.inSeconds+1);
+    })..onDone(_startGame);
+  }
+
+  void _startGame() {  // callback function
+    print("Game started");
+    setState(() {
+      // TODO game is active
+    });
   }
 
   // Manually toggle the tracking state:  moving vs stationary
@@ -381,6 +401,10 @@ class AppState extends State<App> {
                         onPressed: getCurrentPosition,
                       ),
                       // Text('$_motionActivity · $_odometer km'),
+                      FlatButton(
+                        child: const Text('Start'),
+                        onPressed: _startCountdown,
+                      ),
                       FlatButton(
                         child: const Text('add'),
                         onPressed: _addCircle,
