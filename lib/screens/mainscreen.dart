@@ -6,14 +6,69 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Main Screen'),
+        title: Text('The Hunt'),
       ),
       body: Center(
-        child: RaisedButton(
-          child: Text('Start game fyfan!'),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/game');
-          },
+        child: Container(
+          padding: const EdgeInsets.only(left: 30.0, right: 30.0),
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.only(top: 80.0, bottom: 30.0),
+                child: Row(
+                  mainAxisAlignment :MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "The Hunt",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 72,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 4
+                          ..color = Colors.orange[600],
+                      ),  
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 80.0, bottom: 30.0),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Game Name',
+                        ),
+                        onChanged: (value) {
+                          print(value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly ,
+                children: <Widget>[
+                  RaisedButton(
+                    child: Text('Host'),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/game');
+                    },
+                  ),
+                  RaisedButton(
+                    child: const Text('Join'),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/game');
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
