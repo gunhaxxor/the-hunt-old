@@ -72,7 +72,7 @@ class AppState extends State<App> {
     _isPrey = true;
     _motionActivity = 'UNKNOWN';
     _odometer = '0';
-    rootBundle.loadString("assets/mapStyle.txt").then((string) {
+    rootBundle.loadString("assets/mapStyle.json").then((string) {
       _mapStyle = string;
     });
 
