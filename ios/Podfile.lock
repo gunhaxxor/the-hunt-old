@@ -7,6 +7,8 @@ PODS:
   - connectivity (0.0.1):
     - Flutter
     - Reachability
+  - device_info (0.0.1):
+    - Flutter
   - devicelocale (0.0.1):
     - Flutter
   - Flutter (1.0.0)
@@ -36,6 +38,7 @@ PODS:
 DEPENDENCIES:
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
   - connectivity (from `.symlinks/plugins/connectivity/ios`)
+  - device_info (from `.symlinks/plugins/device_info/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - Flutter (from `Flutter`)
   - flutter_background_geolocation (from `.symlinks/plugins/flutter_background_geolocation/ios`)
@@ -57,6 +60,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/background_fetch/ios"
   connectivity:
     :path: ".symlinks/plugins/connectivity/ios"
+  device_info:
+    :path: ".symlinks/plugins/device_info/ios"
   devicelocale:
     :path: ".symlinks/plugins/devicelocale/ios"
   Flutter:
@@ -80,6 +85,7 @@ SPEC CHECKSUMS:
   background_fetch: 81de747c63e1ec3558e222af758c1b5fa2662c70
   CocoaLumberjack: 78b0c238666f4f58db069738ec176f4519557516
   connectivity: 6e94255659cc86dcbef1d452ad3e0491bb1b3e75
+  device_info: cbf09d2ec12aa7110e0b09fabe54b5bd6c8efe74
   devicelocale: feebbe5e7a30adb8c4f83185de1b50ff19b44f00
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_background_geolocation: 8de6cb4584193c8e9bd6da1613b503f5d5ef65fc
