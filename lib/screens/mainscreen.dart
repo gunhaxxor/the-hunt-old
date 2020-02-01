@@ -26,13 +26,13 @@ class MainScreenState extends State<MainScreen> {
       });
     });
   }
-  
+
   void _onClickHostGame() async {
-    await createGameSession(_sessionName);
+    await createGameSession(_sessionName, _playerName);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
   void _onClickJoinGame() async {
-    // await createGameSession(_sessionName);
+    await joinGameSession(_sessionName, _playerName);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
 

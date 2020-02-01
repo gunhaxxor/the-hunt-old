@@ -66,7 +66,8 @@ Future<void> loginOrSignup(userId, userPassword) async {
   }
 }
 
-Future<void> createGameSession(String name) async {
+Future<void> createGameSession(String name, String playerName) async {
+  // TODO create player
   print("creating gameSession $name");
   ParseUser user = await ParseUser.currentUser();
   ParseObject gameSession = ParseObject('GameSession')
@@ -88,6 +89,7 @@ Future<void> joinGameSession(String name, String playerName) async {
       ..set("isHunter", false)
       ..set("playerName", playerName)
       ..set("user", user);
+    player.save();
 
     session.addRelation("participants", [player]);
   }
