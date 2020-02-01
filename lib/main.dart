@@ -18,6 +18,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:gunnars_test/colors.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
@@ -38,22 +39,13 @@ CameraPosition createCameraFromPosition(lat, long) {
 class AppState extends State<App> {
   bool _isMoving;
   bool _enabled = false;
+  bool _isPrey = true;
   String _motionActivity;
   String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   Map<CircleId, Circle> circles = <CircleId, Circle>{};
   int _circleIdCounter = 1;
   int _markerIdCounter = 1;
-  int fillColorsIndex = 0;
-  int strokeColorsIndex = 0;
-  List<Color> colors = <Color>[
-    Colors.purple,
-    Colors.red,
-    Colors.green,
-    Colors.pink,
-  ];
-  int widthsIndex = 0;
-  List<int> widths = <int>[10, 20, 5];
   bg.Location _mostRecentLocation;
 
   Completer<GoogleMapController> _controller = Completer();
@@ -62,6 +54,7 @@ class AppState extends State<App> {
   String _gameSessionName;
   String _userId;
   String _userPassword;
+  AppColors get colors => AppColors();
 
   @override
   void initState() {
@@ -76,6 +69,7 @@ class AppState extends State<App> {
 
     _isMoving = false;
     _enabled = false;
+    _isPrey = true;
     _motionActivity = 'UNKNOWN';
     _odometer = '0';
     rootBundle.loadString("assets/mapStyle.txt").then((string) {
@@ -185,6 +179,12 @@ class AppState extends State<App> {
             "ERROR when trying to get the GoogleMapController from it's future.")));
   }
 
+  void _onClickRole(isPrey) {
+    setState(() {
+      _isPrey = isPrey;
+    });
+  }
+
   void _onClickEnable(enabled) {
     if (enabled) {
       bg.BackgroundGeolocation.start().then((bg.State state) {
@@ -248,6 +248,7 @@ class AppState extends State<App> {
   void _onLocation(bg.Location location) {
     print('[location] - $location');
     _mostRecentLocation = location;
+    _addCircle();
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
     // Future<GoogleMapController> future = _controller.future;
@@ -324,10 +325,16 @@ class AppState extends State<App> {
 
   void _addCircle() {
     final int circleCount = circles.length;
+    double latitude = _mostRecentLocation.coords.latitude;
+    double longitude = _mostRecentLocation.coords.longitude;
 
-    if (circleCount == 12) {
-      return;
+    Color circleColor = colors.hunter;
+    if (_isPrey) {
+      circleColor = colors.prey;
     }
+    // if (circleCount == 12) {
+    //   return;
+    // }
 
     final String circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
@@ -336,12 +343,14 @@ class AppState extends State<App> {
     final Circle circle = Circle(
       circleId: circleId,
       consumeTapEvents: true,
-      strokeColor: Colors.orange,
+      strokeColor: circleColor,
       fillColor: Colors.transparent,
       strokeWidth: 10,
       center: LatLng(
-        center.latitude + sin(_circleIdCounter * pi / 6.0) / 20.0,
-        center.longitude + cos(_circleIdCounter * pi / 6.0) / 20.0,
+        // center.latitude + sin(_circleIdCounter * pi / 6.0) / 20.0,
+        // center.longitude + cos(_circleIdCounter * pi / 6.0) / 20.0,
+        latitude,
+        longitude,
       ),
       radius: 50,
       onTap: () {
@@ -381,6 +390,8 @@ class AppState extends State<App> {
         appBar: AppBar(
           title: const Text('The Hunt'),
           actions: <Widget>[
+            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+            Switch(value: _isPrey, onChanged: _onClickRole),
             Center(child: Text(_enabled ? 'PÅ' : 'AV')),
             Switch(value: _enabled, onChanged: _onClickEnable),
           ],
@@ -388,15 +399,15 @@ class AppState extends State<App> {
         // body: MapSample(_controller),
         body: GoogleMap(
           initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
-          mapType: MapType.hybrid,
+          mapType: MapType.normal,
           onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-            _controller.future.then((controller) {
-              controller.setMapStyle(_mapStyle).then((_) {
-                print("styling map!!!");
-                print(_mapStyle);
-              });
+            controller.setMapStyle(_mapStyle).then((_) {
+              print("styling map!!!");
+            }).catchError((error) {
+              print("ERROR while styling map");
+              return null;
             });
+            _controller.complete(controller);
           },
           markers: Set<Marker>.of(markers.values),
           circles: Set<Circle>.of(circles.values),
