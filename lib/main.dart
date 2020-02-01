@@ -9,6 +9,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
@@ -46,6 +47,7 @@ class AppState extends State<App> {
   bg.Location _mostRecentLocation;
 
   Completer<GoogleMapController> _controller = Completer();
+  String _mapStyle;
 
   @override
   void initState() {
@@ -55,6 +57,19 @@ class AppState extends State<App> {
     _enabled = false;
     _motionActivity = 'UNKNOWN';
     _odometer = '0';
+    rootBundle.loadString("assets/mapStyle.txt").then((string) {
+      _mapStyle = string;
+    });
+
+    // _controller.future.then((GoogleMapController controller) async {
+    //   try {
+    //     String jsonString =
+    //     await controller.setMapStyle(jsonString);
+    //     print("style was changed!!!!!");
+    //   } catch (error) {
+    //     print("ERRRRROOOOR!!!");
+    //   }
+    // });
 
     // 1.  Listen to events (See docs for all 12 available events).
     bg.BackgroundGeolocation.onLocation(_onLocation, (bg.LocationError error) {
@@ -330,6 +345,9 @@ class AppState extends State<App> {
           initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
           mapType: MapType.hybrid,
           onMapCreated: (GoogleMapController controller) {
+            controller.setMapStyle(_mapStyle).then((_) {
+              print("styling map!!!");
+            });
             _controller.complete(controller);
           },
           markers: Set<Marker>.of(markers.values),
@@ -350,7 +368,7 @@ class AppState extends State<App> {
                         icon: Icon(Icons.gps_not_fixed),
                         onPressed: getCurrentPosition,
                       ),
-                      Text('$_motionActivity · $_odometer km'),
+                      // Text('$_motionActivity · $_odometer km'),
                       FlatButton(
                         child: const Text('add'),
                         onPressed: _addCircle,
