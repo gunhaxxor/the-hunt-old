@@ -125,7 +125,7 @@ class AppState extends State<App> {
       _userId = sha256.convert(utf8.encode(_userPassword)).toString();
       return Future.value();
     } catch (error) {
-      print("NOOOOOOOOOOOO!!!!");
+      print("NOOOOOOOOOOOO!!!!"); // NOOOOOOOOOOOO!!!!
       return Future.error(error);
     }
   }
