@@ -11,7 +11,6 @@ class MainScreen extends StatefulWidget {
 class MainScreenState extends State<MainScreen> {
   bool _gameNameAvailable = false;
   bool _playerNameAvailable = false;
-  FocusNode _focus = new FocusNode();
   String _sessionName = "";
   String _playerName = "";
 
@@ -19,7 +18,6 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _focus.addListener(_onFocusChange);
     createUserCredentailsFromHardware().then((Map<String, String> credentials) {
       initParse(credentials["userId"], credentials["userPassword"]).then((_) {
         // getAllGameSessions().then((gameSessionsString) {
@@ -28,11 +26,7 @@ class MainScreenState extends State<MainScreen> {
       });
     });
   }
-
-  void _onFocusChange(){
-    debugPrint("Focus: "+_focus.hasFocus.toString());
-  }
-
+  
   void _onClickHostGame() async {
     await createGameSession(_sessionName);
     Navigator.pushReplacementNamed(context, '/lobby');
@@ -91,7 +85,6 @@ class MainScreenState extends State<MainScreen> {
                   children: <Widget>[
                     Container(
                       child: TextField(
-                        focusNode: _focus,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: 'Player Name',
@@ -107,7 +100,6 @@ class MainScreenState extends State<MainScreen> {
                     ),
                     Container(
                       child: TextField(
-                        focusNode: _focus,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: 'Game Name',
