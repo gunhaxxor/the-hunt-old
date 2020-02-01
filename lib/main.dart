@@ -343,11 +343,11 @@ class AppState extends State<App> {
         // body: MapSample(_controller),
         body: GoogleMap(
           initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
-          mapType: MapType.hybrid,
+          mapType: MapType.normal,
           onMapCreated: (GoogleMapController controller) {
             controller.setMapStyle(_mapStyle).then((_) {
               print("styling map!!!");
-            });
+            }).catchError((error) {print("ERROR while styling map");return null;});
             _controller.complete(controller);
           },
           markers: Set<Marker>.of(markers.values),
