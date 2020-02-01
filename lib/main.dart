@@ -20,6 +20,7 @@ import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
 import 'package:gunnars_test/mapUtility.dart';
+import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +31,10 @@ import 'data/gameModel.dart';
 
 Future main() async {
   await DotEnv().load('.env');
-  runApp(new App());
+  runApp(MaterialApp(home: MainScreen(), // becomes the route named '/'
+      routes: <String, WidgetBuilder>{
+        '/game': (BuildContext context) => App(),
+      }));
 }
 
 class App extends StatefulWidget {
@@ -119,7 +123,7 @@ class AppState extends State<App> {
       _userId = sha256.convert(utf8.encode(_userPassword)).toString();
       return Future.value();
     } catch (error) {
-      print("NOOOOOOOOOOOO!!!!");
+      print("NOOOOOOOOOOOO!!!!"); // NOOOOOOOOOOOO!!!!
       return Future.error(error);
     }
   }
@@ -154,18 +158,18 @@ class AppState extends State<App> {
     }
   }
 
-  // void _startCountdown() {
-  //   print("Countdown started");
-  //   setState(() {
-  //     // TODO game is starting
-  //   });
+  void _startCountdown() {
+    print("Countdown started");
+    setState(() {
+      // TODO game is starting
+    });
 
-  //   CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
-  //     ..onData((data) {
-  //       print(data.remaining.inSeconds + 1);
-  //     })
-  //     ..onDone(_startGame);
-  // }
+    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
+      ..onData((data) {
+        print(data.remaining.inSeconds + 1);
+      })
+      ..onDone(_startGame);
+  }
 
   void _startGame() {
     // callback function
@@ -217,13 +221,6 @@ class AppState extends State<App> {
     _addCircle();
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
-    // Future<GoogleMapController> future = _controller.future;
-    // future
-    //     .then((controller) => (controller.animateCamera(
-    //         CameraUpdate.newCameraPosition(CreateCameraFromPosition(
-    //             location.coords.latitude, location.coords.longitude)))))
-    //     .catchError((error) => (print(
-    //         "ERROR when trying to get the GoogleMapController from it's future.")));
 
     setState(() {
       // _content = encoder.convert(location.toMap());
@@ -353,86 +350,84 @@ class AppState extends State<App> {
     // TODO
   }
 
-  // Future<void> goToPos(lat, long) async {
-  //   final GoogleMapController controller = await _controller.future;
-  //   controller.animateCamera(
-  //       CameraUpdate.newCameraPosition(createCameraFromPosition(lat, long)));
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<GameModel>(
-        create: (context) => GameModel(),
-        child: MaterialApp(
-          title: 'The Hunt',
-          theme: new ThemeData(
-            primarySwatch: Colors.amber,
-          ),
-          home: Scaffold(
-            appBar: AppBar(
-              title: const Text('The Hunt'),
-              actions: <Widget>[
-                Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-                Switch(value: _isPrey, onChanged: _onClickRole),
-                Center(child: Text(_enabled ? 'PÅ' : 'AV')),
-                Switch(value: _enabled, onChanged: _onClickEnable),
-              ],
-            ),
-            // body: MapSample(_controller),
-            body: GoogleMap(
-              initialCameraPosition:
-                  MapUtil.createCameraFromPosition(57.708870, 11.974560),
-              mapType: MapType.normal,
-              onMapCreated: (GoogleMapController controller) {
-                controller.setMapStyle(_mapStyle).then((_) {
-                  print("styling map!!!");
-                }).catchError((error) {
-                  print("ERROR while styling map");
-                  return null;
-                });
-                _controller.complete(controller);
-              },
-              markers: Set<Marker>.of(markers.values),
-              circles: Set<Circle>.of(circles.values),
-            ),
-            floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.gps_fixed),
-              onPressed: () => MapUtil.moveMapViewToLocation(
-                  _controller, _mostRecentLocation),
-            ),
-            bottomNavigationBar: BottomAppBar(
-                child: Container(
-                    padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                    child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          IconButton(
-                            icon: Icon(Icons.gps_not_fixed),
-                            onPressed: getCurrentPosition,
-                          ),
-                          // Text('$_motionActivity · $_odometer km'),
-                          FlatButton(
-                            child: const Text('Start'),
-                            onPressed: _startCountdown,
-                          ),
-                          FlatButton(
-                            child: const Text('add'),
-                            onPressed: _addCircle,
-                          ),
-                          FlatButton(
-                            child: const Text('clear'),
-                            onPressed: _clearCircles,
-                          ),
-                          MaterialButton(
-                              minWidth: 50.0,
-                              child: Icon(
-                                  (_isMoving) ? Icons.pause : Icons.play_arrow,
-                                  color: Colors.white),
-                              color: (_isMoving) ? Colors.red : Colors.green,
-                              onPressed: _onClickChangePace)
-                        ]))),
-          ),
-        ));
+    return new MaterialApp(
+      title: 'The Hunt',
+      theme: new ThemeData(
+        primarySwatch: Colors.amber,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('The Hunt'),
+          actions: <Widget>[
+            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+            Switch(value: _isPrey, onChanged: _onClickRole),
+            Center(child: Text(_enabled ? 'PÅ' : 'AV')),
+            Switch(value: _enabled, onChanged: _onClickEnable),
+          ],
+        ),
+        // body: MapSample(_controller),
+        body: GoogleMap(
+          initialCameraPosition:
+              MapUtil.createCameraFromPosition(57.708870, 11.974560),
+          mapType: MapType.normal,
+          onMapCreated: (GoogleMapController controller) {
+            controller.setMapStyle(_mapStyle).then((_) {
+              print("styling map!!!");
+            }).catchError((error) {
+              print("ERROR while styling map");
+              return null;
+            });
+            _controller.complete(controller);
+          },
+          markers: Set<Marker>.of(markers.values),
+          circles: Set<Circle>.of(circles.values),
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.gps_fixed),
+          onPressed: () =>
+              MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation),
+        ),
+        bottomNavigationBar: BottomAppBar(
+            child: Container(
+                padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.gps_not_fixed),
+                        onPressed: getCurrentPosition,
+                      ),
+                      // Text('$_motionActivity · $_odometer km'),
+                      FlatButton(
+                        child: const Text('Start'),
+                        onPressed: _startCountdown,
+                      ),
+                      FlatButton(
+                        child: const Text('Quit'),
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/');
+                        },
+                      ),
+                      FlatButton(
+                        child: const Text('add'),
+                        onPressed: _addCircle,
+                      ),
+                      FlatButton(
+                        child: const Text('clear'),
+                        onPressed: _clearCircles,
+                      ),
+                      MaterialButton(
+                          minWidth: 50.0,
+                          child: Icon(
+                              (_isMoving) ? Icons.pause : Icons.play_arrow,
+                              color: Colors.white),
+                          color: (_isMoving) ? Colors.red : Colors.green,
+                          onPressed: _onClickChangePace)
+                    ]))),
+      ),
+    );
   }
 }
