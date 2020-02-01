@@ -19,11 +19,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
+import 'package:gunnars_test/screens/lobbyscreen.dart';
 import 'package:gunnars_test/mapUtility.dart';
 import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
+
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:gunnars_test/services/parseServerInteractions.dart';
 import 'package:gunnars_test/services/locationService.dart';
 
@@ -31,10 +34,13 @@ import 'package:gunnars_test/data/gameModel.dart';
 
 Future main() async {
   await DotEnv().load('.env');
-  runApp(MaterialApp(home: MainScreen(), // becomes the route named '/'
-      routes: <String, WidgetBuilder>{
-        '/game': (BuildContext context) => App(),
-      }));
+  runApp(MaterialApp(
+    home: MainScreen(), // becomes the route named '/'
+    routes: <String, WidgetBuilder> {
+      '/game': (BuildContext context) => App(),
+      '/lobby': (BuildContext context) => LobbyScreen(),
+    }
+  ));
 }
 
 class App extends StatefulWidget {
@@ -56,7 +62,6 @@ class AppState extends State<App> {
   Map<CircleId, Circle> circles = <CircleId, Circle>{};
   int _circleIdCounter = 1;
   int _markerIdCounter = 1;
-  bg.Location _mostRecentLocation;
 
   Completer<GoogleMapController> _controller = Completer();
   String _mapStyle;
@@ -170,14 +175,11 @@ class AppState extends State<App> {
     });
   }
 
-  void _addCircle(bg.Location loc) {
-    final int circleCount = circles.length;
-    double latitude = loc.coords.latitude;
-    double longitude = loc.coords.longitude;
+  void _addCircle(double latitude, double longitude, bool isHunter) {
 
-    Color circleColor = colors.hunter;
-    if (_isPrey) {
-      circleColor = colors.prey;
+    Color circleColor = colors.prey;
+    if (isHunter) {
+      circleColor = colors.hunter;
     }
     // if (circleCount == 12) {
     //   return;
@@ -211,6 +213,7 @@ class AppState extends State<App> {
   }
 
   void _clearCircles() {
+    _circleIdCounter = 0;
     setState(() {
       circles.clear();
     });
@@ -218,6 +221,26 @@ class AppState extends State<App> {
 
   void _onCircleTapped(CircleId circleId) {
     // TODO
+  }
+
+  void _getLocations() {
+    _clearCircles();
+    getLocationsForGameSession('RVpzsL3tST', false).then((response) {
+      List<ParseObject> responsObjects = response;
+      for (var locationObject in responsObjects) {
+        ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
+        _addCircle(point.latitude, point.longitude, false);
+      }
+      
+    });
+    getLocationsForGameSession('RVpzsL3tST', true).then((response) {
+      List<ParseObject> responsObjects = response;
+      for (var locationObject in responsObjects) {
+        ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
+        _addCircle(point.latitude, point.longitude, true);
+      }
+      
+    });
   }
 
   @override
@@ -264,54 +287,58 @@ class AppState extends State<App> {
             markers: Set<Marker>.of(markers.values),
             circles: Set<Circle>.of(circles.values),
           ),
-          floatingActionButton: FloatingActionButton(
-            child: Icon(Icons.gps_fixed),
-            onPressed: () =>
-                MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation),
+          floatingActionButton: Consumer<LocationService>(
+            builder: (context, locationService, child)  {
+              return FloatingActionButton(
+              child: Icon(Icons.gps_fixed),
+              onPressed: () =>
+                  MapUtil.moveMapViewToLocation(_controller, locationService.mostRecentLocation),
+              );
+            }
           ),
           bottomNavigationBar: BottomAppBar(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                  child: Consumer<LocationService>(
-                    builder: (context, locationService, child)  {
-                    return Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.gps_not_fixed),
-                          onPressed: () => locationService.GetCurrentPosition(),
-                        ),
-                        // Text('$_motionActivity · $_odometer km'),
-                        FlatButton(
-                          child: const Text('Start'),
-                          onPressed: _startCountdown,
-                        ),
-                        FlatButton(
-                          child: const Text('Quit'),
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/');
-                          },
-                        ),
-                        FlatButton(
-                          child: const Text('add'),
-                          onPressed: () => _addCircle(locationService.mostRecentLocation),
-                        ),
-                        FlatButton(
-                          child: const Text('clear'),
-                          onPressed: _clearCircles,
-                        ),
-                        MaterialButton(
-                            minWidth: 50.0,
-                            child: Icon(
-                                (locationService.isMoving) ? Icons.pause : Icons.play_arrow,
-                                color: Colors.white),
-                            color: (locationService.isMoving) ? Colors.red : Colors.green,
-                            onPressed: locationService.OnClickChangePace)
-                      ]);
-                    },)),
-        ),
-      )
+            child: Container(
+                padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                child: Consumer<LocationService>(
+                  builder: (context, locationService, child)  {
+                  return Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.gps_not_fixed),
+                        onPressed: () => locationService.GetCurrentPosition(),
+                      ),
+                      // Text('$_motionActivity · $_odometer km'),
+                      FlatButton(
+                        child: const Text('Start'),
+                        onPressed: _startCountdown,
+                      ),
+                      FlatButton(
+                        child: const Text('Quit'),
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/');
+                        },
+                      ),
+                      FlatButton(
+                        child: const Text('add'),
+                        onPressed: () => _addCircle(locationService.mostRecentLocation.coords.latitude, locationService.mostRecentLocation.coords.longitude, false),
+                      ),
+                      FlatButton(
+                        child: const Text('clear'),
+                        onPressed: _clearCircles,
+                      ),
+                      MaterialButton(
+                          minWidth: 50.0,
+                          child: Icon(
+                              (locationService.isMoving) ? Icons.pause : Icons.play_arrow,
+                              color: Colors.white),
+                          color: (locationService.isMoving) ? Colors.red : Colors.green,
+                          onPressed: locationService.OnClickChangePace)
+                    ]);
+                  },)),
+          ),
+      ),
     ));
   }
 }
