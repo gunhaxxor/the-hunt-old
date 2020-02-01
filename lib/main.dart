@@ -20,11 +20,15 @@ import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
 import 'package:gunnars_test/screens/lobbyscreen.dart';
+import 'package:gunnars_test/mapUtility.dart';
 import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:gunnars_test/services/parseServerInteractions.dart';
+
+import 'data/gameModel.dart';
 
 Future main() async {
   await DotEnv().load('.env');
@@ -42,16 +46,16 @@ class App extends StatefulWidget {
   AppState createState() => AppState();
 }
 
-CameraPosition createCameraFromPosition(lat, long) {
-  return CameraPosition(target: LatLng(lat, long), zoom: 17);
-}
+// CameraPosition createCameraFromPosition(lat, long) {
+//   return CameraPosition(target: LatLng(lat, long), zoom: 17);
+// }
 
 class AppState extends State<App> {
   bool _isMoving;
   bool _enabled = false;
   bool _isPrey = true;
-  String _motionActivity;
-  String _odometer;
+  // String _motionActivity;
+  // String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   Map<CircleId, Circle> circles = <CircleId, Circle>{};
   int _circleIdCounter = 1;
@@ -70,7 +74,7 @@ class AppState extends State<App> {
   void initState() {
     super.initState();
     createUserCredentailsFromHardware().then((_) {
-      initParse().then((_) {
+      initParse(_userPassword, _userPassword).then((_) {
         getAllGameSessions().then((gameSessionsString) {
           _gameSessionName = gameSessionsString;
         });
@@ -80,21 +84,11 @@ class AppState extends State<App> {
     _isMoving = false;
     _enabled = false;
     _isPrey = true;
-    _motionActivity = 'UNKNOWN';
-    _odometer = '0';
+    // _motionActivity = 'UNKNOWN';
+    // _odometer = '0';
     rootBundle.loadString("assets/mapStyle.json").then((string) {
       _mapStyle = string;
     });
-
-    // _controller.future.then((GoogleMapController controller) async {
-    //   try {
-    //     String jsonString =
-    //     await controller.setMapStyle(jsonString);
-    //     print("style was changed!!!!!");
-    //   } catch (error) {
-    //     print("ERRRRROOOOR!!!");
-    //   }
-    // });
 
     // 1.  Listen to events (See docs for all 12 available events).
     bg.BackgroundGeolocation.onLocation(_onLocation, (bg.LocationError error) {
@@ -138,57 +132,6 @@ class AppState extends State<App> {
     }
   }
 
-  Future<void> initParse() async {
-    await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
-        'https://parseapi.back4app.com',
-        masterKey:
-            DotEnv().env['PARSE_MASTERKEY'], // Required for Back4App and others
-        // clientKey: keyParseClientKey, // Required for some setups
-        debug: true, // When enabled, prints logs to console
-        // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
-        autoSendSessionId: true, // Required for authentication and ACL
-        // securityContext: securityContext, // Again, required for some setups
-        coreStore: await CoreStoreSharedPrefsImp
-            .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
-
-    // Check server is healthy and live - Debug is on in this instance so check logs for result
-    final ParseResponse response = await Parse().healthCheck();
-
-    if (response.success) {
-      print("PARSE CONNECTION HEALTHY");
-      ParseUser user = ParseUser(_userId, _userPassword, "beg@gmail.com");
-      var response = await user.signUp();
-      print(response);
-    } else {
-      print("PARSE HEALTH NO GOOD");
-    }
-  }
-
-  Future<String> getAllGameSessions() async {
-    var apiResponse = await ParseObject('GameSession').getAll();
-
-    if (apiResponse.success) {
-      for (var testObject in apiResponse.result) {
-        print("Parse result: " + testObject.toString());
-      }
-
-      return apiResponse.results.toString();
-    }
-
-    return Future.error('no result');
-  }
-
-  void moveMapViewToOwnLocation() async {
-    if (_mostRecentLocation == null) await getCurrentPosition();
-    _controller.future
-        .then((controller) => (controller.animateCamera(
-            CameraUpdate.newCameraPosition(createCameraFromPosition(
-                _mostRecentLocation.coords.latitude,
-                _mostRecentLocation.coords.longitude)))))
-        .catchError((error) => (print(
-            "ERROR when trying to get the GoogleMapController from it's future.")));
-  }
-
   void _onClickRole(isPrey) {
     setState(() {
       _isPrey = isPrey;
@@ -211,7 +154,7 @@ class AppState extends State<App> {
         bg.BackgroundGeolocation.setOdometer(0.0);
 
         setState(() {
-          _odometer = '0.0';
+          // _odometer = '0.0';
           _enabled = state.enabled;
           _isMoving = state.isMoving;
         });
@@ -225,13 +168,15 @@ class AppState extends State<App> {
       // TODO game is starting
     });
 
-    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data){
-    })..onData((data){
-      print(data.remaining.inSeconds+1);
-    })..onDone(_startGame);
+    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
+      ..onData((data) {
+        print(data.remaining.inSeconds + 1);
+      })
+      ..onDone(_startGame);
   }
 
-  void _startGame() {  // callback function
+  void _startGame() {
+    // callback function
     print("Game started");
     setState(() {
       // TODO game is active
@@ -280,19 +225,26 @@ class AppState extends State<App> {
     _addCircle();
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
-    // Future<GoogleMapController> future = _controller.future;
-    // future
-    //     .then((controller) => (controller.animateCamera(
-    //         CameraUpdate.newCameraPosition(CreateCameraFromPosition(
-    //             location.coords.latitude, location.coords.longitude)))))
-    //     .catchError((error) => (print(
-    //         "ERROR when trying to get the GoogleMapController from it's future.")));
 
     setState(() {
       // _content = encoder.convert(location.toMap());
       // _content = location as String;
-      _odometer = odometerKM;
+      // _odometer = odometerKM;
     });
+
+    sendLocationToParse(location);
+  }
+
+  void sendLocationToParse(bg.Location location) {
+    ParseGeoPoint latlong = new ParseGeoPoint();
+    latlong.latitude = location.coords.latitude;
+    latlong.longitude = location.coords.longitude;
+    ParseObject loc = ParseObject("Location")
+      ..set('heading', location.coords.heading)
+      ..set('coords', latlong)
+      ..set('visibleByDefault', true);
+
+    loc.save();
   }
 
   void _onMotionChange(bg.Location location) {
@@ -302,7 +254,7 @@ class AppState extends State<App> {
   void _onActivityChange(bg.ActivityChangeEvent event) {
     print('[activitychange] - $event');
     setState(() {
-      _motionActivity = event.activity;
+      // _motionActivity = event.activity;
     });
   }
 
@@ -402,12 +354,6 @@ class AppState extends State<App> {
     // TODO
   }
 
-  Future<void> goToPos(lat, long) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(createCameraFromPosition(lat, long)));
-  }
-
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -427,7 +373,8 @@ class AppState extends State<App> {
         ),
         // body: MapSample(_controller),
         body: GoogleMap(
-          initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
+          initialCameraPosition:
+              MapUtil.createCameraFromPosition(57.708870, 11.974560),
           mapType: MapType.normal,
           onMapCreated: (GoogleMapController controller) {
             controller.setMapStyle(_mapStyle).then((_) {
@@ -443,7 +390,8 @@ class AppState extends State<App> {
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.gps_fixed),
-          onPressed: moveMapViewToOwnLocation,
+          onPressed: () =>
+              MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation),
         ),
         bottomNavigationBar: BottomAppBar(
             child: Container(
@@ -463,7 +411,9 @@ class AppState extends State<App> {
                       ),
                       FlatButton(
                         child: const Text('Quit'),
-                        onPressed: () {Navigator.pushReplacementNamed(context, '/');},
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/');
+                        },
                       ),
                       FlatButton(
                         child: const Text('add'),
@@ -485,4 +435,3 @@ class AppState extends State<App> {
     );
   }
 }
-
