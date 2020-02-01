@@ -1,3 +1,6 @@
+import 'dart:convert';
+// import 'dart:html';
+
 /**
 * flutter_background_geolocation Hello World
 * https://github.com/transistorsoft/flutter_background_geolocation
@@ -10,11 +13,18 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:device_info/device_info.dart';
+import 'package:crypto/crypto.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
-void main() => runApp(new App());
+Future main() async {
+  await DotEnv().load('.env');
+  runApp(new App());
+}
 
 class App extends StatefulWidget {
   @override
@@ -49,10 +59,21 @@ class AppState extends State<App> {
   Completer<GoogleMapController> _controller = Completer();
   String _mapStyle;
 
+  String _gameSessionName;
+  String _userId;
+  String _userPassword;
+
   @override
   void initState() {
     super.initState();
-    initParse();
+    createUserCredentailsFromHardware().then((_) {
+      initParse().then((_) {
+        getAllGameSessions().then((gameSessionsString) {
+          _gameSessionName = gameSessionsString;
+        });
+      });
+    });
+
     _isMoving = false;
     _enabled = false;
     _motionActivity = 'UNKNOWN';
@@ -97,10 +118,27 @@ class AppState extends State<App> {
     });
   }
 
+  Future<void> createUserCredentailsFromHardware() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    try {
+      if (Platform.isAndroid) {
+        _userPassword = (await deviceInfo.androidInfo).androidId;
+      } else if (Platform.isIOS) {
+        _userPassword = (await deviceInfo.iosInfo).identifierForVendor;
+      }
+      _userId = sha256.convert(utf8.encode(_userPassword)).toString();
+      return Future.value();
+    } catch (error) {
+      print("NOOOOOOOOOOOO!!!!");
+      return Future.error(error);
+    }
+  }
+
   Future<void> initParse() async {
     await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
         'https://parseapi.back4app.com',
-        // masterKey: keyParseMasterKey, // Required for Back4App and others
+        masterKey:
+            DotEnv().env['PARSE_MASTERKEY'], // Required for Back4App and others
         // clientKey: keyParseClientKey, // Required for some setups
         debug: true, // When enabled, prints logs to console
         // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
@@ -114,19 +152,26 @@ class AppState extends State<App> {
 
     if (response.success) {
       print("PARSE CONNECTION HEALTHY");
+      ParseUser user = ParseUser(_userId, _userPassword, "beg@gmail.com");
+      var response = await user.signUp();
+      print(response);
     } else {
       print("PARSE HEALTH NO GOOD");
     }
   }
 
-  Future<void> getSomeTestData() async {
+  Future<String> getAllGameSessions() async {
     var apiResponse = await ParseObject('GameSession').getAll();
 
     if (apiResponse.success) {
       for (var testObject in apiResponse.result) {
         print("Parse result: " + testObject.toString());
       }
+
+      return apiResponse.results.toString();
     }
+
+    return Future.error('no result');
   }
 
   void moveMapViewToOwnLocation() async {
@@ -345,10 +390,13 @@ class AppState extends State<App> {
           initialCameraPosition: createCameraFromPosition(57.708870, 11.974560),
           mapType: MapType.hybrid,
           onMapCreated: (GoogleMapController controller) {
-            controller.setMapStyle(_mapStyle).then((_) {
-              print("styling map!!!");
-            });
             _controller.complete(controller);
+            _controller.future.then((controller) {
+              controller.setMapStyle(_mapStyle).then((_) {
+                print("styling map!!!");
+                print(_mapStyle);
+              });
+            });
           },
           markers: Set<Marker>.of(markers.values),
           circles: Set<Circle>.of(circles.values),
