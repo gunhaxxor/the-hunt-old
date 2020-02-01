@@ -114,6 +114,20 @@ Future<String> getAllGameSessions() async {
   return Future.error('no result');
 }
 
+
+Future<List<dynamic>> getPlayersForGameSession(String gameSessionId) async {
+  QueryBuilder<ParseObject> playerQuery =
+      QueryBuilder<ParseObject>(ParseObject('Player'))
+        ..whereRelatedTo('participants', 'GameSession', gameSessionId);
+
+  var apiResponse = await playerQuery.query();
+
+  if (apiResponse.success && apiResponse.count > 0) {
+    return apiResponse.results;
+  }
+  return Future.error('no result');
+}
+
 Future<List<dynamic>> getLocationsForGameSession(
     String gameSessionId, bool hunters) async {
   QueryBuilder<ParseObject> playerQuery =
