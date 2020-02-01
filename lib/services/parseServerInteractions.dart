@@ -41,15 +41,28 @@ Future<void> initParse(userId, userPassword) async {
 
   if (response.success) {
     print("PARSE CONNECTION HEALTHY");
-    ParseUser user = ParseUser(userId, userPassword, "beg@gmail.com");
-    var response = await user.signUp();
+    await loginOrSignup(userId, userPassword);
     print(response);
   } else {
     print("PARSE HEALTH NO GOOD");
   }
+}
 
-  //Testing if we gamesession name is taken
-  isNameAvailable("bajs");
+Future<void> loginOrSignup(userId, userPassword) async {
+  ParseUser user;
+  try {
+    user = await ParseUser.currentUser();
+    ParseResponse resp = await user.getUpdatedUser();
+    if (!resp.success) {
+      throw Exception("fuck you");
+    }
+    print("already logged in");
+    return Future.value(user);
+  } catch (error) {
+    user = ParseUser(userId, userPassword, 'beg@mail.xyz');
+    print("creating new user!!!");
+    return user.signUp();
+  }
 }
 
 Future<bool> isNameAvailable(String value) async {
@@ -79,22 +92,21 @@ Future<String> getAllGameSessions() async {
   return Future.error('no result');
 }
 
-Future<List<dynamic>> getLocationsForGameSession(String gameSessionId, bool hunters) async {
+Future<List<dynamic>> getLocationsForGameSession(
+    String gameSessionId, bool hunters) async {
   QueryBuilder<ParseObject> playerQuery =
-    QueryBuilder<ParseObject>(ParseObject('Player'))
-      ..whereRelatedTo('participants', 'GameSession', gameSessionId)
-      ..whereEqualTo('isHunter', hunters);
-
+      QueryBuilder<ParseObject>(ParseObject('Player'))
+        ..whereRelatedTo('participants', 'GameSession', gameSessionId)
+        ..whereEqualTo('isHunter', hunters);
 
   // QueryBuilder<ParseObject> sessionQuery =
   //   QueryBuilder<ParseObject>(ParseObject('GameSession'))
   //     ..whereEqualTo('objectId', 'RVpzsL3tST');
 
-
-   QueryBuilder<ParseObject> queryBuilder =
-    QueryBuilder<ParseObject>(ParseObject('Location'))
-      ..whereEqualTo('visibleByDefault', true)
-      ..whereMatchesQuery('player', playerQuery);
+  QueryBuilder<ParseObject> queryBuilder =
+      QueryBuilder<ParseObject>(ParseObject('Location'))
+        ..whereEqualTo('visibleByDefault', true)
+        ..whereMatchesQuery('player', playerQuery);
 
   // var apiResponse = await queryBuilder.query();
   var apiResponse = await queryBuilder.query();
