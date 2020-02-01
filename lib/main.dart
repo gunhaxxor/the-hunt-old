@@ -1,4 +1,3 @@
-import 'dart:convert';
 // import 'dart:html';
 
 /**
@@ -13,10 +12,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:device_info/device_info.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io' show Platform;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
 import 'package:gunnars_test/mapUtility.dart';
@@ -73,13 +69,6 @@ class AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    createUserCredentailsFromHardware().then((_) {
-      initParse(_userPassword, _userPassword).then((_) {
-        getAllGameSessions().then((gameSessionsString) {
-          _gameSessionName = gameSessionsString;
-        });
-      });
-    });
 
     _isMoving = false;
     _enabled = false;
@@ -117,22 +106,6 @@ class AppState extends State<App> {
         _isMoving = state.isMoving;
       });
     });
-  }
-
-  Future<void> createUserCredentailsFromHardware() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    try {
-      if (Platform.isAndroid) {
-        _userPassword = (await deviceInfo.androidInfo).androidId;
-      } else if (Platform.isIOS) {
-        _userPassword = (await deviceInfo.iosInfo).identifierForVendor;
-      }
-      _userId = sha256.convert(utf8.encode(_userPassword)).toString();
-      return Future.value();
-    } catch (error) {
-      print("NOOOOOOOOOOOO!!!!"); // NOOOOOOOOOOOO!!!!
-      return Future.error(error);
-    }
   }
 
   void _onClickRole(isPrey) {
