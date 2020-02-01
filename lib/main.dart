@@ -13,6 +13,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
 import 'package:quiver/async.dart';
+import 'package:provider/provider.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
@@ -425,3 +426,4 @@ class AppState extends State<App> {
     );
   }
 }
+

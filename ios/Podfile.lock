@@ -4,6 +4,11 @@ PODS:
   - CocoaLumberjack (3.6.0):
     - CocoaLumberjack/Core (= 3.6.0)
   - CocoaLumberjack/Core (3.6.0)
+  - connectivity (0.0.1):
+    - Flutter
+    - Reachability
+  - devicelocale (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_background_geolocation (1.6.1):
     - CocoaLumberjack (~> 3.6.0)
@@ -16,35 +21,76 @@ PODS:
   - GoogleMaps/Base (2.7.0)
   - GoogleMaps/Maps (2.7.0):
     - GoogleMaps/Base
+  - package_info (0.0.1):
+    - Flutter
+  - path_provider (0.0.1):
+    - Flutter
+  - Reachability (3.2)
+  - shared_preferences (0.0.1):
+    - Flutter
+  - shared_preferences_macos (0.0.1):
+    - Flutter
+  - shared_preferences_web (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
+  - connectivity (from `.symlinks/plugins/connectivity/ios`)
+  - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - Flutter (from `Flutter`)
   - flutter_background_geolocation (from `.symlinks/plugins/flutter_background_geolocation/ios`)
   - google_maps_flutter (from `.symlinks/plugins/google_maps_flutter/ios`)
+  - package_info (from `.symlinks/plugins/package_info/ios`)
+  - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
+  - shared_preferences_macos (from `.symlinks/plugins/shared_preferences_macos/ios`)
+  - shared_preferences_web (from `.symlinks/plugins/shared_preferences_web/ios`)
 
 SPEC REPOS:
   trunk:
     - CocoaLumberjack
     - GoogleMaps
+    - Reachability
 
 EXTERNAL SOURCES:
   background_fetch:
     :path: ".symlinks/plugins/background_fetch/ios"
+  connectivity:
+    :path: ".symlinks/plugins/connectivity/ios"
+  devicelocale:
+    :path: ".symlinks/plugins/devicelocale/ios"
   Flutter:
     :path: Flutter
   flutter_background_geolocation:
     :path: ".symlinks/plugins/flutter_background_geolocation/ios"
   google_maps_flutter:
     :path: ".symlinks/plugins/google_maps_flutter/ios"
+  package_info:
+    :path: ".symlinks/plugins/package_info/ios"
+  path_provider:
+    :path: ".symlinks/plugins/path_provider/ios"
+  shared_preferences:
+    :path: ".symlinks/plugins/shared_preferences/ios"
+  shared_preferences_macos:
+    :path: ".symlinks/plugins/shared_preferences_macos/ios"
+  shared_preferences_web:
+    :path: ".symlinks/plugins/shared_preferences_web/ios"
 
 SPEC CHECKSUMS:
   background_fetch: 81de747c63e1ec3558e222af758c1b5fa2662c70
   CocoaLumberjack: 78b0c238666f4f58db069738ec176f4519557516
+  connectivity: 6e94255659cc86dcbef1d452ad3e0491bb1b3e75
+  devicelocale: feebbe5e7a30adb8c4f83185de1b50ff19b44f00
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_background_geolocation: 8de6cb4584193c8e9bd6da1613b503f5d5ef65fc
   google_maps_flutter: d0dd62f5a7d39bae61057eb9f52dd778d99c7c6c
   GoogleMaps: f79af95cb24d869457b1f961c93d3ce8b2f3b848
+  package_info: 48b108e75b8802c2d5e126f208ef540561c98aef
+  path_provider: fb74bd0465e96b594bb3b5088ee4a4e7bb1f2a9d
+  Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
+  shared_preferences: 430726339841afefe5142b9c1f50cb6bd7793e01
+  shared_preferences_macos: f3f29b71ccbb56bf40c9dd6396c9acf15e214087
+  shared_preferences_web: 141cce0c3ed1a1c5bf2a0e44f52d31eeb66e5ea9
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
 

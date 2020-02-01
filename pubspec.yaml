@@ -27,6 +27,7 @@ dependencies:
   flutter_background_geolocation: ^1.6.1
   google_maps_flutter: ^0.5.21+17
   parse_server_sdk: ^1.0.25
+  provider: ^4.0.2
 
 dev_dependencies:
   flutter_test:
