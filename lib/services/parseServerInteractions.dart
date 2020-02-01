@@ -1,3 +1,4 @@
+import 'package:gunnars_test/data/GameModel.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -72,6 +73,24 @@ Future<void> createGameSession(String name) async {
     ..set('name', name)
     ..set('owner', user);
   gameSession.save();
+}
+
+Future<void> joinGameSession(String name, String playerName) async {
+  QueryBuilder<ParseObject> query =
+      QueryBuilder<ParseObject>(ParseObject('GameSession'))
+        ..whereEqualTo('name', name);
+  var resp = await query.query();
+  if (resp.success) {
+    ParseObject session = resp.results[0];
+    ParseUser user = await ParseUser.currentUser();
+
+    ParseObject player = ParseObject('Player')
+      ..set("isHunter", false)
+      ..set("playerName", playerName)
+      ..set("user", user);
+
+    session.addRelation("participants", [player]);
+  }
 }
 
 Future<bool> isNameAvailable(String value) async {
