@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:gunnars_test/colors.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 
@@ -34,20 +35,12 @@ class AppState extends State<App> {
   Map<CircleId, Circle> circles = <CircleId, Circle>{};
   int _circleIdCounter = 1;
   int _markerIdCounter = 1;
-  int fillColorsIndex = 0;
-  int strokeColorsIndex = 0;
-  List<Color> colors = <Color>[
-    Colors.purple,
-    Colors.red,
-    Colors.green,
-    Colors.pink,
-  ];
-  int widthsIndex = 0;
-  List<int> widths = <int>[10, 20, 5];
   bg.Location _mostRecentLocation;
 
   Completer<GoogleMapController> _controller = Completer();
   String _mapStyle;
+
+  AppColors get colors => AppColors();
 
   @override
   void initState() {
@@ -279,10 +272,12 @@ class AppState extends State<App> {
 
   void _addCircle() {
     final int circleCount = circles.length;
-
-    if (circleCount == 12) {
-      return;
-    }
+    double latitude = _mostRecentLocation.coords.latitude;
+    double longitude = _mostRecentLocation.coords.longitude;
+    Color circleColor = colors.hunter;
+    // if (circleCount == 12) {
+    //   return;
+    // }
 
     final String circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
@@ -291,12 +286,14 @@ class AppState extends State<App> {
     final Circle circle = Circle(
       circleId: circleId,
       consumeTapEvents: true,
-      strokeColor: Colors.orange,
+      strokeColor: circleColor,
       fillColor: Colors.transparent,
       strokeWidth: 10,
       center: LatLng(
-        center.latitude + sin(_circleIdCounter * pi / 6.0) / 20.0,
-        center.longitude + cos(_circleIdCounter * pi / 6.0) / 20.0,
+        // center.latitude + sin(_circleIdCounter * pi / 6.0) / 20.0,
+        // center.longitude + cos(_circleIdCounter * pi / 6.0) / 20.0,
+        latitude,
+        longitude,
       ),
       radius: 50,
       onTap: () {
