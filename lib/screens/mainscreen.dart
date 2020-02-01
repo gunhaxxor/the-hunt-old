@@ -40,7 +40,7 @@ class MainScreen extends StatelessWidget {
                   children: <Widget>[
                     Expanded(
                       child: Text(
-                        "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the preyto catch it.",
+                        "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the prey to catch it.",
                         style: TextStyle(
                           fontSize: 16,
                         ),  
