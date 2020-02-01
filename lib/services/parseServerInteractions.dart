@@ -74,11 +74,24 @@ Future<void> createGameSession(String name) async {
   gameSession.save();
 }
 
-Future<bool> isNameAvailable(String value) async {
-  print("Checking if name taaaken");
+Future<bool> isGameNameAvailable(String value) async {
+  print("Checking if game name taaaken");
   QueryBuilder<ParseObject> query =
       QueryBuilder<ParseObject>(ParseObject('GameSession'))
         ..whereEqualTo('name', value);
+
+  var apiResponse = await query.query();
+  if (apiResponse.success) {
+    return Future.value(apiResponse.count == 0);
+  }
+  return Future.error('HEEEELVETE!! ITS ALL GUNNARS FAULT! BUT THIS WENT WRONG. SORRY. CANT HELP IT. DONT CRY. PLEASE.');
+}
+
+Future<bool> isPlayerNameAvailable(String value) async {
+  print("Checking if player name taaaken");
+  QueryBuilder<ParseObject> query =
+      QueryBuilder<ParseObject>(ParseObject('Player'))
+        ..whereEqualTo('playerName', value);
 
   var apiResponse = await query.query();
   if (apiResponse.success) {

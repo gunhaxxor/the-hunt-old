@@ -9,9 +9,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  bool _nameAvailable = false;
+  bool _gameNameAvailable = false;
+  bool _playerNameAvailable = false;
   FocusNode _focus = new FocusNode();
   String _sessionName = "";
+  String _playerName = "";
 
   @override
   void initState() {
@@ -92,14 +94,29 @@ class MainScreenState extends State<MainScreen> {
                         focusNode: _focus,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
+                          labelText: 'Player Name',
+                        ),
+                        onChanged: (value) async {
+                          bool free = await isPlayerNameAvailable(value);
+                          setState(() {
+                            _playerNameAvailable = free;
+                            _playerName = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Container(
+                      child: TextField(
+                        focusNode: _focus,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
                           labelText: 'Game Name',
                         ),
                         onChanged: (value) async {
-                          bool free = await isNameAvailable(value);
-
+                          bool free = await isGameNameAvailable(value);
                           print(free);
                           setState(() {
-                            _nameAvailable = free;
+                            _gameNameAvailable = free;
                             _sessionName = value;
                           });
                         },
@@ -112,11 +129,11 @@ class MainScreenState extends State<MainScreen> {
                             color: Colors.orange[700],
                             child: Text('Host'),
                             onPressed:
-                                _nameAvailable && _sessionName.isNotEmpty ? _onClickHostGame : null),
+                                _gameNameAvailable && _sessionName.isNotEmpty ? _onClickHostGame : null),
                         RaisedButton(
                           color: Colors.orange[700],
                           child: Text('Join'),
-                          onPressed: _nameAvailable && _sessionName.isEmpty ? null : _onClickJoinGame
+                          onPressed: _gameNameAvailable && _sessionName.isEmpty ? null : _onClickJoinGame
                         ),
                       ],
                     )
