@@ -93,11 +93,25 @@ Future<void> joinGameSession(String name, String playerName) async {
   }
 }
 
-Future<bool> isNameAvailable(String value) async {
-  print("Checking if name taaaken");
+Future<bool> isGameNameAvailable(String value) async {
+  print("Checking if game name taaaken");
   QueryBuilder<ParseObject> query =
       QueryBuilder<ParseObject>(ParseObject('GameSession'))
         ..whereEqualTo('name', value);
+
+  var apiResponse = await query.query();
+  if (apiResponse.success) {
+    return Future.value(apiResponse.count == 0);
+  }
+  return Future.error(
+      'HEEEELVETE!! ITS ALL GUNNARS FAULT! BUT THIS WENT WRONG. SORRY. CANT HELP IT. DONT CRY. PLEASE.');
+}
+
+Future<bool> isPlayerNameAvailable(String value) async {
+  print("Checking if player name taaaken");
+  QueryBuilder<ParseObject> query =
+      QueryBuilder<ParseObject>(ParseObject('Player'))
+        ..whereEqualTo('playerName', value);
 
   var apiResponse = await query.query();
   if (apiResponse.success) {
@@ -117,6 +131,19 @@ Future<String> getAllGameSessions() async {
     return apiResponse.results.toString();
   }
 
+  return Future.error('no result');
+}
+
+Future<List<dynamic>> getPlayersForGameSession(String gameSessionId) async {
+  QueryBuilder<ParseObject> playerQuery =
+      QueryBuilder<ParseObject>(ParseObject('Player'))
+        ..whereRelatedTo('participants', 'GameSession', gameSessionId);
+
+  var apiResponse = await playerQuery.query();
+
+  if (apiResponse.success && apiResponse.count > 0) {
+    return apiResponse.results;
+  }
   return Future.error('no result');
 }
 

@@ -9,14 +9,15 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  bool _nameAvailable = false;
-  String _sessionName;
+  bool _gameNameAvailable = false;
+  bool _playerNameAvailable = false;
+  String _sessionName = "";
+  String _playerName = "";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
     createUserCredentailsFromHardware().then((Map<String, String> credentials) {
       initParse(credentials["userId"], credentials["userPassword"]).then((_) {
         // getAllGameSessions().then((gameSessionsString) {
@@ -25,9 +26,13 @@ class MainScreenState extends State<MainScreen> {
       });
     });
   }
-
+  
   void _onClickHostGame() async {
     await createGameSession(_sessionName);
+    Navigator.pushReplacementNamed(context, '/lobby');
+  }
+  void _onClickJoinGame() async {
+    // await createGameSession(_sessionName);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
 
@@ -82,14 +87,28 @@ class MainScreenState extends State<MainScreen> {
                       child: TextField(
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
+                          labelText: 'Player Name',
+                        ),
+                        onChanged: (value) async {
+                          bool free = await isPlayerNameAvailable(value);
+                          setState(() {
+                            _playerNameAvailable = free;
+                            _playerName = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Container(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
                           labelText: 'Game Name',
                         ),
                         onChanged: (value) async {
-                          bool free = await isNameAvailable(value);
-
+                          bool free = await isGameNameAvailable(value);
                           print(free);
                           setState(() {
-                            _nameAvailable = free;
+                            _gameNameAvailable = free;
                             _sessionName = value;
                           });
                         },
@@ -102,13 +121,11 @@ class MainScreenState extends State<MainScreen> {
                             color: Colors.orange[700],
                             child: Text('Host'),
                             onPressed:
-                                _nameAvailable ? _onClickHostGame : null),
+                                _gameNameAvailable && _sessionName.isNotEmpty ? _onClickHostGame : null),
                         RaisedButton(
                           color: Colors.orange[700],
-                          child: const Text('Join'),
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/lobby');
-                          },
+                          child: Text('Join'),
+                          onPressed: _gameNameAvailable && _sessionName.isEmpty ? null : _onClickJoinGame
                         ),
                       ],
                     )
