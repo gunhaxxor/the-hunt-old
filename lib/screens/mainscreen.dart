@@ -11,7 +11,7 @@ class MainScreen extends StatefulWidget {
 class MainScreenState extends State<MainScreen> {
   bool _nameAvailable = false;
   FocusNode _focus = new FocusNode();
-  String _sessionName;
+  String _sessionName = "";
 
   @override
   void initState() {
@@ -33,6 +33,10 @@ class MainScreenState extends State<MainScreen> {
 
   void _onClickHostGame() async {
     await createGameSession(_sessionName);
+    Navigator.pushReplacementNamed(context, '/lobby');
+  }
+  void _onClickJoinGame() async {
+    // await createGameSession(_sessionName);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
 
@@ -108,13 +112,11 @@ class MainScreenState extends State<MainScreen> {
                             color: Colors.orange[700],
                             child: Text('Host'),
                             onPressed:
-                                _nameAvailable ? _onClickHostGame : null),
+                                _nameAvailable && _sessionName.isNotEmpty ? _onClickHostGame : null),
                         RaisedButton(
                           color: Colors.orange[700],
-                          child: const Text('Join'),
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, '/lobby');
-                          },
+                          child: Text('Join'),
+                          onPressed: _nameAvailable && _sessionName.isEmpty ? null : _onClickJoinGame
                         ),
                       ],
                     )
