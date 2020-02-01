@@ -14,11 +14,18 @@ enum PlayerType {
    prey 
 }
 
-class Player {
-  String name = "Gösta";
-  LatLng pos = LatLng(0,0);
+class PlayerLocation {
+  double latitude = 0.0;
+  double longitude = 0.0;
   double heading = 0.0;
   double speed = 0.0;
+
+  PlayerLocation({this.latitude, this.longitude, this.heading, this.speed});
+}
+
+class Player {
+  String name = "Gösta";
+  PlayerLocation playerLocation;
   PlayerType playerType;
 }
 
