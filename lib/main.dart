@@ -222,7 +222,6 @@ class AppState extends State<App> {
   void _onLocation(bg.Location location) {
     print('[location] - $location');
     _mostRecentLocation = location;
-    _addCircle();
 
     String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
 
@@ -304,14 +303,14 @@ class AppState extends State<App> {
     });
   }
 
-  void _addCircle() {
+  void _addCircle(double latitude, double longitude, bool isHunter) {
     final int circleCount = circles.length;
-    double latitude = _mostRecentLocation.coords.latitude;
-    double longitude = _mostRecentLocation.coords.longitude;
+    // double latitude = _mostRecentLocation.coords.latitude;
+    // double longitude = _mostRecentLocation.coords.longitude;
 
-    Color circleColor = colors.hunter;
-    if (_isPrey) {
-      circleColor = colors.prey;
+    Color circleColor = colors.prey;
+    if (isHunter) {
+      circleColor = colors.hunter;
     }
     // if (circleCount == 12) {
     //   return;
@@ -352,6 +351,26 @@ class AppState extends State<App> {
 
   void _onCircleTapped(CircleId circleId) {
     // TODO
+  }
+
+  void _getLocations() {
+    _clearCircles();
+    getLocationsForGameSession('RVpzsL3tST', false).then((response) {
+      List<ParseObject> responsObjects = response;
+      for (var locationObject in responsObjects) {
+        ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
+        _addCircle(point.latitude, point.longitude, false);
+      }
+      
+    });
+    getLocationsForGameSession('RVpzsL3tST', true).then((response) {
+      List<ParseObject> responsObjects = response;
+      for (var locationObject in responsObjects) {
+        ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
+        _addCircle(point.latitude, point.longitude, true);
+      }
+      
+    });
   }
 
   @override
@@ -416,8 +435,8 @@ class AppState extends State<App> {
                         },
                       ),
                       FlatButton(
-                        child: const Text('add'),
-                        onPressed: _addCircle,
+                        child: const Text('load'),
+                        onPressed: _getLocations,
                       ),
                       FlatButton(
                         child: const Text('clear'),

@@ -41,10 +41,11 @@ Future<String> getAllGameSessions() async {
   return Future.error('no result');
 }
 
-Future<String> getLocation() async {
+Future<List<dynamic>> getLocationsForGameSession(String gameSessionId, bool hunters) async {
   QueryBuilder<ParseObject> playerQuery =
     QueryBuilder<ParseObject>(ParseObject('Player'))
-      ..whereRelatedTo('participants', 'GameSession', 'RVpzsL3tST');
+      ..whereRelatedTo('participants', 'GameSession', gameSessionId)
+      ..whereEqualTo('isHunter', hunters);
 
 
   // QueryBuilder<ParseObject> sessionQuery =
@@ -62,14 +63,15 @@ Future<String> getLocation() async {
 
   // var apiResponse = await ParseObject('Locations').;
 
-  if (apiResponse.success) {
+  if (apiResponse.success && apiResponse.count > 0) {
     print("\\\\\\\\\\\\\\");
+    print(apiResponse.count);
     for (var testObject in apiResponse.result) {
-      print("Parse result: " + testObject.toString());
-      print("/////");
+      //print("Parse result: " + testObject.toString());
+      //print("/////");
     }
 
-    return apiResponse.results.toString();
+    return apiResponse.results;
   }
 
   return Future.error('no result');
