@@ -65,6 +65,15 @@ Future<void> loginOrSignup(userId, userPassword) async {
   }
 }
 
+Future<void> createGameSession(String name) async {
+  print("creating gameSession $name");
+  ParseUser user = await ParseUser.currentUser();
+  ParseObject gameSession = ParseObject('GameSession')
+    ..set('name', name)
+    ..set('owner', user);
+  gameSession.save();
+}
+
 Future<bool> isNameAvailable(String value) async {
   print("Checking if name taaaken");
   QueryBuilder<ParseObject> query =

@@ -10,6 +10,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   bool _nameAvailable = false;
+  String _sessionName;
 
   @override
   void initState() {
@@ -23,6 +24,11 @@ class MainScreenState extends State<MainScreen> {
         // });
       });
     });
+  }
+
+  void _onClickHostGame() async {
+    await createGameSession(_sessionName);
+    Navigator.pushReplacementNamed(context, '/lobby');
   }
 
   @override
@@ -84,6 +90,7 @@ class MainScreenState extends State<MainScreen> {
                           print(free);
                           setState(() {
                             _nameAvailable = free;
+                            _sessionName = value;
                           });
                         },
                       ),
@@ -94,10 +101,8 @@ class MainScreenState extends State<MainScreen> {
                         RaisedButton(
                             color: Colors.orange[700],
                             child: Text('Host'),
-                            onPressed: _nameAvailable
-                                ? () => Navigator.pushReplacementNamed(
-                                    context, '/lobby')
-                                : null),
+                            onPressed:
+                                _nameAvailable ? _onClickHostGame : null),
                         RaisedButton(
                           color: Colors.orange[700],
                           child: const Text('Join'),
