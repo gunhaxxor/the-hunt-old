@@ -29,6 +29,7 @@ CameraPosition createCameraFromPosition(lat, long) {
 class AppState extends State<App> {
   bool _isMoving;
   bool _enabled = false;
+  bool _isPrey = true;
   String _motionActivity;
   String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
@@ -48,6 +49,7 @@ class AppState extends State<App> {
     initParse();
     _isMoving = false;
     _enabled = false;
+    _isPrey = true;
     _motionActivity = 'UNKNOWN';
     _odometer = '0';
     rootBundle.loadString("assets/mapStyle.txt").then((string) {
@@ -131,6 +133,12 @@ class AppState extends State<App> {
                 _mostRecentLocation.coords.longitude)))))
         .catchError((error) => (print(
             "ERROR when trying to get the GoogleMapController from it's future.")));
+  }
+
+  void _onClickRole(isPrey) {
+    setState(() {
+      _isPrey = isPrey;
+    });
   }
 
   void _onClickEnable(enabled) {
@@ -275,7 +283,11 @@ class AppState extends State<App> {
     final int circleCount = circles.length;
     double latitude = _mostRecentLocation.coords.latitude;
     double longitude = _mostRecentLocation.coords.longitude;
+
     Color circleColor = colors.hunter;
+    if(_isPrey) {
+      circleColor = colors.prey;
+    }
     // if (circleCount == 12) {
     //   return;
     // }
@@ -334,6 +346,8 @@ class AppState extends State<App> {
         appBar: AppBar(
           title: const Text('The Hunt'),
           actions: <Widget>[
+            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+            Switch(value: _isPrey, onChanged: _onClickRole),
             Center(child: Text(_enabled ? 'PÅ' : 'AV')),
             Switch(value: _enabled, onChanged: _onClickEnable),
           ],
