@@ -94,7 +94,7 @@ class LobbyScreen extends StatelessWidget {
                     ),
                     RaisedButton(
                       color: Colors.orange[700],
-                      child: Text('Start game'),
+                      child: Text('Start the hunt!'),
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/game');
                       },

@@ -34,7 +34,39 @@ class MainScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.only(top: 80.0, bottom: 30.0),
+                padding: const EdgeInsets.only(top: 0.0, bottom: 10.0),
+                child: Row(
+                  mainAxisAlignment :MainAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the preyto catch it.",
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),  
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 0.0, bottom: 80.0),
+                child: Row(
+                  mainAxisAlignment :MainAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        "Come up with a name and host a game, or fill in the name of an existing game and join it.",
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),  
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 0.0, bottom: 30.0),
                 child: Row(
                   children: <Widget>[
                     Expanded(
