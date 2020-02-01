@@ -24,6 +24,8 @@ import 'package:gunnars_test/screens/mainscreen.dart';
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
+import 'package:gunnars_test/timerThingy.dart';
+
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:gunnars_test/services/parseServerInteractions.dart';
 
@@ -58,12 +60,14 @@ class AppState extends State<App> {
   int _markerIdCounter = 1;
   bg.Location _mostRecentLocation;
 
-  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _controller;
   String _mapStyle;
 
   String _gameSessionName;
   String _userId;
   String _userPassword;
+  TimerThingy _timerThingy;
+  int _timeToReveal;
   AppColors get colors => AppColors();
 
   @override
@@ -80,6 +84,9 @@ class AppState extends State<App> {
     _isMoving = false;
     _enabled = false;
     _isPrey = true;
+
+    _timerThingy = TimerThingy(30,
+        () => MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation));
     // _motionActivity = 'UNKNOWN';
     // _odometer = '0';
     rootBundle.loadString("assets/mapStyle.json").then((string) {
@@ -220,7 +227,7 @@ class AppState extends State<App> {
     _mostRecentLocation = location;
     _addCircle();
 
-    String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
+    // String odometerKM = (location.odometer / 1000.0).toStringAsFixed(1);
 
     setState(() {
       // _content = encoder.convert(location.toMap());
@@ -359,15 +366,17 @@ class AppState extends State<App> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('The Hunt'),
+          title: Text(_timeToReveal.toString()),
           actions: <Widget>[
-            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-            Switch(value: _isPrey, onChanged: _onClickRole),
+            IconButton(
+                onPressed: () {
+                  _timeToReveal = _timerThingy.secondsLeft();
+                },
+                icon: Icon(Icons.timer)),
             Center(child: Text(_enabled ? 'PÅ' : 'AV')),
             Switch(value: _enabled, onChanged: _onClickEnable),
           ],
         ),
-        // body: MapSample(_controller),
         body: GoogleMap(
           initialCameraPosition:
               MapUtil.createCameraFromPosition(57.708870, 11.974560),
@@ -379,7 +388,7 @@ class AppState extends State<App> {
               print("ERROR while styling map");
               return null;
             });
-            _controller.complete(controller);
+            _controller = controller;
           },
           markers: Set<Marker>.of(markers.values),
           circles: Set<Circle>.of(circles.values),

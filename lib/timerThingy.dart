@@ -8,7 +8,9 @@ class TimerThingy {
   Stopwatch _stopWatch;
   void Function() _callback;
 
-  TimerThingy(int interval, void Function() callback, triggerInstantly) {
+  TimerThingy(int interval, void Function() callback,
+      [triggerInstantly = false]) {
+    print("TimerThingy created");
     _interval = interval;
     _stopWatch = new Stopwatch();
     _callback = callback;
@@ -22,6 +24,7 @@ class TimerThingy {
   }
 
   void triggerFunction(Timer timer) {
+    print("TIMERTHINGY TRIGGERED");
     _stopWatch.reset();
     _callback();
 
@@ -34,7 +37,9 @@ class TimerThingy {
   }
 
   int secondsLeft() {
-    return _interval - _stopWatch.elapsedMilliseconds ~/ 1000;
+    int secondsLeft = _interval - _stopWatch.elapsedMilliseconds ~/ 1000;
+    print("SECONDSLEFT: $secondsLeft");
+    return secondsLeft;
   }
 
   void stop() {
