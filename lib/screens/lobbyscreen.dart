@@ -53,12 +53,29 @@ class LobbyScreen extends StatelessWidget {
                   child: Column(
                     children: <Widget>[
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Expanded(
-                            child: Text("Player name"),
+                          Text(
+                            "Player name",
+                            style: TextStyle(fontWeight: FontWeight.bold,),
+                          ),
+                          Text(
+                            "Hunter/Prey",
+                            style: TextStyle(fontWeight: FontWeight.bold,),
                           ),
                         ],
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text('Gunnhaxxor'),
+                          Switch(
+                            value: true,
+                            onChanged: (value) {},
+                          ),
+                        ],
+                      ),
+                      
                     ],
                   ),
                 ),
