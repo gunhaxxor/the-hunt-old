@@ -24,7 +24,7 @@ import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
 
 import 'package:parse_server_sdk/parse_server_sdk.dart';
-import 'data/parseServerInteractions.dart';
+import 'package:gunnars_test/services/parseServerInteractions.dart';
 
 Future main() async {
   await DotEnv().load('.env');
