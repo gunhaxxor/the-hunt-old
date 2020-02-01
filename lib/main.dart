@@ -26,6 +26,8 @@ import 'package:provider/provider.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:gunnars_test/services/parseServerInteractions.dart';
 
+import 'data/gameModel.dart';
+
 Future main() async {
   await DotEnv().load('.env');
   runApp(new App());
@@ -122,43 +124,6 @@ class AppState extends State<App> {
     }
   }
 
-  // Future<void> initParse() async {
-  //   await Parse().initialize('ZNTkzZ7nxKOu88Cza8qjaNcLTdJgvxe1FuVPb0TF',
-  //       'https://parseapi.back4app.com',
-  //       masterKey:
-  //           DotEnv().env['PARSE_MASTERKEY'], // Required for Back4App and others
-  //       // clientKey: keyParseClientKey, // Required for some setups
-  //       debug: true, // When enabled, prints logs to console
-  //       // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
-  //       autoSendSessionId: true, // Required for authentication and ACL
-  //       // securityContext: securityContext, // Again, required for some setups
-  //       coreStore: await CoreStoreSharedPrefsImp
-  //           .getInstance()); // Local data storage method. Will use SharedPreferences instead of Sembast as an internal DB
-
-  //   // Check server is healthy and live - Debug is on in this instance so check logs for result
-  //   final ParseResponse response = await Parse().healthCheck();
-
-  //   if (response.success) {
-  //     print("PARSE CONNECTION HEALTHY");
-  //     ParseUser user = ParseUser(_userId, _userPassword, "beg@gmail.com");
-  //     var response = await user.signUp();
-  //     print(response);
-  //   } else {
-  //     print("PARSE HEALTH NO GOOD");
-  //   }
-  // }
-
-  // void moveMapViewToOwnLocation() async {
-  //   if (_mostRecentLocation == null) await getCurrentPosition();
-  //   _controller.future
-  //       .then((controller) => (controller.animateCamera(
-  //           CameraUpdate.newCameraPosition(createCameraFromPosition(
-  //               _mostRecentLocation.coords.latitude,
-  //               _mostRecentLocation.coords.longitude)))))
-  //       .catchError((error) => (print(
-  //           "ERROR when trying to get the GoogleMapController from it's future.")));
-  // }
-
   void _onClickRole(isPrey) {
     setState(() {
       _isPrey = isPrey;
@@ -189,18 +154,18 @@ class AppState extends State<App> {
     }
   }
 
-  void _startCountdown() {
-    print("Countdown started");
-    setState(() {
-      // TODO game is starting
-    });
+  // void _startCountdown() {
+  //   print("Countdown started");
+  //   setState(() {
+  //     // TODO game is starting
+  //   });
 
-    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
-      ..onData((data) {
-        print(data.remaining.inSeconds + 1);
-      })
-      ..onDone(_startGame);
-  }
+  //   CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
+  //     ..onData((data) {
+  //       print(data.remaining.inSeconds + 1);
+  //     })
+  //     ..onDone(_startGame);
+  // }
 
   void _startGame() {
     // callback function
@@ -396,76 +361,78 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'The Hunt',
-      theme: new ThemeData(
-        primarySwatch: Colors.amber,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('The Hunt'),
-          actions: <Widget>[
-            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-            Switch(value: _isPrey, onChanged: _onClickRole),
-            Center(child: Text(_enabled ? 'PÅ' : 'AV')),
-            Switch(value: _enabled, onChanged: _onClickEnable),
-          ],
-        ),
-        // body: MapSample(_controller),
-        body: GoogleMap(
-          initialCameraPosition:
-              MapUtil.createCameraFromPosition(57.708870, 11.974560),
-          mapType: MapType.normal,
-          onMapCreated: (GoogleMapController controller) {
-            controller.setMapStyle(_mapStyle).then((_) {
-              print("styling map!!!");
-            }).catchError((error) {
-              print("ERROR while styling map");
-              return null;
-            });
-            _controller.complete(controller);
-          },
-          markers: Set<Marker>.of(markers.values),
-          circles: Set<Circle>.of(circles.values),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.gps_fixed),
-          onPressed: () =>
-              MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation),
-        ),
-        bottomNavigationBar: BottomAppBar(
-            child: Container(
-                padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.gps_not_fixed),
-                        onPressed: getCurrentPosition,
-                      ),
-                      // Text('$_motionActivity · $_odometer km'),
-                      FlatButton(
-                        child: const Text('Start'),
-                        onPressed: _startCountdown,
-                      ),
-                      FlatButton(
-                        child: const Text('add'),
-                        onPressed: _addCircle,
-                      ),
-                      FlatButton(
-                        child: const Text('clear'),
-                        onPressed: _clearCircles,
-                      ),
-                      MaterialButton(
-                          minWidth: 50.0,
-                          child: Icon(
-                              (_isMoving) ? Icons.pause : Icons.play_arrow,
-                              color: Colors.white),
-                          color: (_isMoving) ? Colors.red : Colors.green,
-                          onPressed: _onClickChangePace)
-                    ]))),
-      ),
-    );
+    return ChangeNotifierProvider<GameModel>(
+        create: (context) => GameModel(),
+        child: MaterialApp(
+          title: 'The Hunt',
+          theme: new ThemeData(
+            primarySwatch: Colors.amber,
+          ),
+          home: Scaffold(
+            appBar: AppBar(
+              title: const Text('The Hunt'),
+              actions: <Widget>[
+                Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+                Switch(value: _isPrey, onChanged: _onClickRole),
+                Center(child: Text(_enabled ? 'PÅ' : 'AV')),
+                Switch(value: _enabled, onChanged: _onClickEnable),
+              ],
+            ),
+            // body: MapSample(_controller),
+            body: GoogleMap(
+              initialCameraPosition:
+                  MapUtil.createCameraFromPosition(57.708870, 11.974560),
+              mapType: MapType.normal,
+              onMapCreated: (GoogleMapController controller) {
+                controller.setMapStyle(_mapStyle).then((_) {
+                  print("styling map!!!");
+                }).catchError((error) {
+                  print("ERROR while styling map");
+                  return null;
+                });
+                _controller.complete(controller);
+              },
+              markers: Set<Marker>.of(markers.values),
+              circles: Set<Circle>.of(circles.values),
+            ),
+            floatingActionButton: FloatingActionButton(
+              child: Icon(Icons.gps_fixed),
+              onPressed: () => MapUtil.moveMapViewToLocation(
+                  _controller, _mostRecentLocation),
+            ),
+            bottomNavigationBar: BottomAppBar(
+                child: Container(
+                    padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                    child: Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(Icons.gps_not_fixed),
+                            onPressed: getCurrentPosition,
+                          ),
+                          // Text('$_motionActivity · $_odometer km'),
+                          FlatButton(
+                            child: const Text('Start'),
+                            onPressed: _startCountdown,
+                          ),
+                          FlatButton(
+                            child: const Text('add'),
+                            onPressed: _addCircle,
+                          ),
+                          FlatButton(
+                            child: const Text('clear'),
+                            onPressed: _clearCircles,
+                          ),
+                          MaterialButton(
+                              minWidth: 50.0,
+                              child: Icon(
+                                  (_isMoving) ? Icons.pause : Icons.play_arrow,
+                                  color: Colors.white),
+                              color: (_isMoving) ? Colors.red : Colors.green,
+                              onPressed: _onClickChangePace)
+                        ]))),
+          ),
+        ));
   }
 }
