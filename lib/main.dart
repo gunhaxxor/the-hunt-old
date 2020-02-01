@@ -460,6 +460,10 @@ class AppState extends State<App> {
                         onPressed: _startCountdown,
                       ),
                       FlatButton(
+                        child: const Text('Quit'),
+                        onPressed: () {Navigator.pushReplacementNamed(context, '/');},
+                      ),
+                      FlatButton(
                         child: const Text('add'),
                         onPressed: _addCircle,
                       ),
