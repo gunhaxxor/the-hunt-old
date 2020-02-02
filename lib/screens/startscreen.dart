@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import 'package:gunnars_test/services/parseServerInteractions.dart';
 
-class MainScreen extends StatefulWidget {
+class StartScreen extends StatefulWidget {
   @override
-  State<MainScreen> createState() => MainScreenState();
+  State<StartScreen> createState() => StartScreenState();
 }
 
-class MainScreenState extends State<MainScreen> {
+class StartScreenState extends State<StartScreen> {
   bool _gameNameAvailable = false;
   bool _playerNameAvailable = false;
   String _sessionName = "";
