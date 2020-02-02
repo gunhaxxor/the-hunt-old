@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 // import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
 //     as bg;
 // import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:gunnars_test/data/GameModel.dart';
 
 // import 'package:parse_server_sdk/parse_server_sdk.dart';
 // import 'package:gunnars_test/services/parseServerInteractions.dart';
@@ -14,8 +18,9 @@ import 'package:gunnars_test/services/locationService.dart';
 import 'package:gunnars_test/mapUtility.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gunnars_test/colors.dart';
+import 'package:gunnars_test/services/parseServerInteractions.dart';
 
-// import 'package:gunnars_test/timerThingy.dart';
+import 'package:gunnars_test/timerThingy.dart';
 
 import 'package:quiver/async.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +37,7 @@ class GameScreen extends StatefulWidget {
 class GameScreenState extends State<GameScreen> {
   // bool _isMoving;
   // bool _enabled = false;
-  bool _isPrey = true;
+  // bool _isPrey = true;
   // String _motionActivity;
   // String _odometer;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
@@ -56,7 +61,7 @@ class GameScreenState extends State<GameScreen> {
 
     //_isMoving = false;
     //_enabled = false;
-    _isPrey = true;
+    // _isPrey = true;
 
     // _timerThingy = TimerThingy(30,
     //     () => MapUtil.moveMapViewToLocation(_controller, _mostRecentLocation));
@@ -67,70 +72,7 @@ class GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _onClickRole(isPrey) {
-    setState(() {
-      _isPrey = isPrey;
-    });
-  }
-
-  void _startCountdown() {
-    print("Countdown started");
-    setState(() {
-      // TODO game is starting
-    });
-
-    CountdownTimer(Duration(seconds: 5), Duration(seconds: 1)).listen((data) {})
-      ..onData((data) {
-        print(data.remaining.inSeconds + 1);
-      })
-      ..onDone(_startGame);
-  }
-
-  void _startGame() {
-    // callback function
-    print("Game started");
-    setState(() {
-      // TODO game is active
-    });
-  }
-
-  ////
-  // Event handlers
-  //
-
   static final LatLng center = const LatLng(57.708612, 11.973289);
-
-  // void _addMarker() {
-  //   final int markerCount = markers.length;
-
-  //   if (markerCount == 12) {
-  //     return;
-  //   }
-  //   print("Adding marker");
-
-  //   final String markerIdVal = 'marker_id_$_markerIdCounter';
-  //   _markerIdCounter++;
-  //   final MarkerId markerId = MarkerId(markerIdVal);
-
-  //   final Marker marker = Marker(
-  //     markerId: markerId,
-  //     position: LatLng(
-  //       center.latitude + sin(_markerIdCounter * pi / 6.0) / 20.0,
-  //       center.longitude + cos(_markerIdCounter * pi / 6.0) / 20.0,
-  //     ),
-  //     infoWindow: InfoWindow(title: markerIdVal, snippet: '*'),
-  //     onTap: () {
-  //       // _onMarkerTapped(markerId);
-  //     },
-  //     onDragEnd: (LatLng position) {
-  //       // _onMarkerDragEnd(markerId, position);
-  //     },
-  //   );
-
-  //   setState(() {
-  //     markers[markerId] = marker;
-  //   });
-  // }
 
   void _addCircle(double latitude, double longitude, bool isHunter) {
     Color circleColor = colors.prey;
@@ -139,9 +81,6 @@ class GameScreenState extends State<GameScreen> {
       circleColor = colors.hunter;
       circleRadius = 25;
     }
-    // if (circleCount == 12) {
-    //   return;
-    // }
 
     final String circleIdVal = 'circle_id_$_circleIdCounter';
     _circleIdCounter++;
@@ -181,46 +120,34 @@ class GameScreenState extends State<GameScreen> {
     // TODO
   }
 
-  // void _getLocations() {
-  //   _clearCircles();
-  //   getLocationsForGameSession('RVpzsL3tST', false).then((response) {
-  //     List<ParseObject> responsObjects = response;
-  //     for (var locationObject in responsObjects) {
-  //       ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
-  //       _addCircle(point.latitude, point.longitude, false);
-  //     }
-  //   });
-  //   getLocationsForGameSession('RVpzsL3tST', true).then((response) {
-  //     List<ParseObject> responsObjects = response;
-  //     for (var locationObject in responsObjects) {
-  //       ParseGeoPoint point = (locationObject.get("coords") as ParseGeoPoint);
-  //       _addCircle(point.latitude, point.longitude, true);
-  //     }
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<LocationService>(
-      create: (context) => LocationService(),
+    final GameModel gameModel = Provider.of<GameModel>(context, listen: true);
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<LocationService>(create: (context) {
+          LocationService service = LocationService();
+          gameModel.createTimer(
+              10, () => sendLocationToParse(service.mostRecentLocation));
+          return service;
+        }),
+        StreamProvider<Duration>(create: (context) {
+          return gameModel.timer.untilReveal;
+        })
+      ],
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('The Hunt'),
+          title: Consumer<Duration>(
+            builder: (context, countDown, child) {
+              return Text(countDown.inSeconds.toString());
+            },
+          ),
           actions: <Widget>[
-            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-            Switch(value: _isPrey, onChanged: _onClickRole),
-            Consumer<LocationService>(
-              builder: (context, locationService, child) {
-                return Center(
-                    child: Text(locationService.enabled ? 'PÅ' : 'AV'));
-              },
-            ),
-            Consumer<LocationService>(
-              builder: (context, locationService, child) {
-                return Switch(
-                    value: locationService.enabled,
-                    onChanged: locationService.onClickEnable);
-              },
+            FlatButton(
+              child: Text("random interval"),
+              onPressed: () => gameModel.timer
+                  .changeIntervalOnNextTrigger(Random().nextInt(14)),
             )
           ],
         ),
@@ -262,11 +189,6 @@ class GameScreenState extends State<GameScreen> {
                         IconButton(
                           icon: Icon(Icons.gps_not_fixed),
                           onPressed: () => locationService.getCurrentPosition(),
-                        ),
-                        // Text('$_motionActivity · $_odometer km'),
-                        FlatButton(
-                          child: const Text('Start'),
-                          onPressed: _startCountdown,
                         ),
                         FlatButton(
                           child: const Text('Quit'),

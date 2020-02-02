@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gunnars_test/data/GameModel.dart';
+import 'package:gunnars_test/timerThingy.dart';
 // import 'package:gunnars_test/data/GameModel.dart';
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -38,6 +40,16 @@ class GameModel with ChangeNotifier {
   Player myPlayer;
   Player prey;
   List<Player> players = new List<Player>();
+
+  TimerThingy timer;
+
+  createTimer(interv, cb) {
+    if (timer == null) {
+      timer = TimerThingy(interval: interv, callback: cb);
+    } else {
+      print("a timer was already created");
+    }
+  }
 
   set gameState(GameState newState) {
     _gameState = newState;

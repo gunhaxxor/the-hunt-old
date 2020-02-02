@@ -1,6 +1,8 @@
 // import 'package:gunnars_test/data/GameModel.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
 
 import 'package:device_info/device_info.dart';
 import 'package:crypto/crypto.dart';
@@ -125,6 +127,23 @@ Future<bool> isPlayerNameAvailable(String value) async {
     return Future.value(available);
   }
   return Future.error('HEEEELVETE!!');
+}
+
+void sendLocationToParse(bg.Location location) {
+  print("sending location to parse!!");
+  print(location);
+  ParseGeoPoint latlong = new ParseGeoPoint();
+  latlong.latitude = location.coords.latitude;
+  latlong.longitude = location.coords.longitude;
+  ParseObject loc = ParseObject("Location")
+    ..set('heading', location.coords.heading)
+    ..set('speed', location.coords.speed)
+    // ..set('activity', location.activity.type)
+    // ..set('accuracy', location.coords.accuracy)
+    ..set('coords', latlong)
+    ..set('visibleByDefault', true);
+
+  loc.save();
 }
 
 Future<String> getAllGameSessions() async {

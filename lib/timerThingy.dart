@@ -1,43 +1,69 @@
 // import 'package:quiver/async.dart';
 import 'dart:async';
 
+// Stream<TimerThingy> untilRevealStream() { //                        <--- Stream
+//   return Stream<TimerThingy>.periodic(Duration(seconds: 1),
+//           (x) => TimerThingy(someValue: '$x'))
+//       .take(10);
+// }
+
 class TimerThingy {
-  int _interval;
+  int interval;
+  int _nextInterval;
   bool _intervalChanged = false;
   Timer _timer;
   Stopwatch _stopWatch;
-  void Function() _callback;
+  void Function() callback;
 
-  TimerThingy(int interval, void Function() callback,
-      [triggerInstantly = false]) {
+  Stream<Duration> untilReveal;
+
+  TimerThingy({this.interval, this.callback, triggerInstantly = false}) {
     print("TimerThingy created");
-    _interval = interval;
+    this.interval = interval;
+    _nextInterval = interval;
     _stopWatch = new Stopwatch();
-    _callback = callback;
+    callback = callback;
 
-    Duration dur = Duration(seconds: _interval);
-    _timer = Timer.periodic(dur, triggerFunction);
+    Duration dur = Duration(seconds: interval);
+    _timer = Timer.periodic(dur, _triggerFunction);
     _stopWatch.start();
     if (triggerInstantly) {
-      _callback();
+      callback();
+    }
+
+    untilReveal = _streamFunction();
+  }
+
+  Stream<Duration> _streamFunction() async* {
+    while (true) {
+      await Future.delayed(Duration(seconds: 1));
+      Duration timeLeft = Duration(seconds: interval) -
+          Duration(milliseconds: _stopWatch.elapsedMilliseconds);
+      yield timeLeft;
+      // if (timeLeft.inMilliseconds <= 0) break;
     }
   }
 
-  void triggerFunction(Timer timer) {
+  void _triggerFunction(Timer timer) {
     print("TIMERTHINGY TRIGGERED");
     _stopWatch.reset();
-    _callback();
+    callback();
 
-    if (_intervalChanged) {
-      _intervalChanged = false;
+    if (_nextInterval != interval) {
+      print("should change interval to $interval before starting next period");
       _timer.cancel();
-      Duration dur = Duration(seconds: _interval);
-      _timer = Timer.periodic(dur, triggerFunction);
+      Duration dur = Duration(seconds: _nextInterval);
+      interval = _nextInterval;
+      _timer = Timer.periodic(dur, _triggerFunction);
     }
+  }
+
+  void setCallback(cb) {
+    callback = cb;
   }
 
   int secondsLeft() {
-    int secondsLeft = _interval - _stopWatch.elapsedMilliseconds ~/ 1000;
+    int secondsLeft = interval - _stopWatch.elapsedMilliseconds ~/ 1000;
     print("SECONDSLEFT: $secondsLeft");
     return secondsLeft;
   }
@@ -48,8 +74,8 @@ class TimerThingy {
   }
 
   changeIntervalOnNextTrigger(int interval) {
-    _intervalChanged = true;
-    _interval = interval;
+    print("timerthingy interval updated to $interval for next period!");
+    _nextInterval = interval;
   }
 
   void changeIntervalNow(int interval) {
@@ -57,7 +83,7 @@ class TimerThingy {
     Duration dur = Duration(seconds: interval);
     _timer = Timer.periodic(dur, (timer) {
       _stopWatch.reset();
-      _callback();
+      callback();
     });
   }
 }

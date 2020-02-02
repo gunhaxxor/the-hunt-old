@@ -117,21 +117,21 @@ class LocationService with ChangeNotifier {
 
     // Here we would add it to the stream BUT WE COMMENTED IT OUT
     // this._playerLocationController.add(_currentPlayerLocation);
-    this.sendLocationToParse(location);
+    // this.sendLocationToParse(location);
     //_addCircle();
   }
 
-  void sendLocationToParse(bg.Location location) {
-    ParseGeoPoint latlong = new ParseGeoPoint();
-    latlong.latitude = location.coords.latitude;
-    latlong.longitude = location.coords.longitude;
-    ParseObject loc = ParseObject("Location")
-      ..set('heading', location.coords.heading)
-      ..set('coords', latlong)
-      ..set('visibleByDefault', true);
+  // void sendLocationToParse(bg.Location location) {
+  //   ParseGeoPoint latlong = new ParseGeoPoint();
+  //   latlong.latitude = location.coords.latitude;
+  //   latlong.longitude = location.coords.longitude;
+  //   ParseObject loc = ParseObject("Location")
+  //     ..set('heading', location.coords.heading)
+  //     ..set('coords', latlong)
+  //     ..set('visibleByDefault', true);
 
-    loc.save();
-  }
+  //   loc.save();
+  // }
 
   void _onMotionChange(bg.Location location) {
     print('[motionchange] - $location');

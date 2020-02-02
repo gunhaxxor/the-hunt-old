@@ -19,7 +19,7 @@ class MainWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<GameModel>(
         create: (context) => GameModel(),
-        child: MaterialApp(home: StartScreen(), // becomes the route named '/'
+        child: MaterialApp(home: GameScreen(), // becomes the route named '/'
             routes: <String, WidgetBuilder>{
               '/game': (BuildContext context) => GameScreen(),
               '/lobby': (BuildContext context) => LobbyScreen(),
