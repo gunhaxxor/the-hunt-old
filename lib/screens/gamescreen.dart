@@ -245,6 +245,7 @@ class GameScreenState extends State<GameScreen> {
               },
               markers: Set<Marker>.of(markers.values),
               circles: Set<Circle>.of(circles.values),
+              myLocationButtonEnabled: false,
             ),
             floatingActionButton: Consumer<LocationService>(
                 builder: (context, locationService, child) {
