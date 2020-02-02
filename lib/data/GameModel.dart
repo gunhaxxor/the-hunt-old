@@ -8,7 +8,7 @@ class Player {
   String name = "Gösta";
   PlayerType playerType;
   Location currentLocation;
-  List<Location> trail = new List<Location>(0);
+  List<Location> trail = new List<Location>();
   Player(
       {this.name = "",
       this.playerType = PlayerType.hunter,
@@ -37,7 +37,7 @@ class GameModel with ChangeNotifier {
   GameState _gameState;
   Player myPlayer;
   Player prey;
-  List<Player> players = new List<Player>(0);
+  List<Player> players = new List<Player>();
 
   set gameState(GameState newState) {
     _gameState = newState;
@@ -50,6 +50,7 @@ class GameModel with ChangeNotifier {
   }
 
   void addPlayerToGameSession(Player player) {
+    print("adding player $player to gamesession");
     players.add(player);
     if (player.playerType == PlayerType.prey) {
       if (prey == null) {

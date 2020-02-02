@@ -30,7 +30,7 @@ Future<void> initParse(userId, userPassword) async {
       masterKey:
           DotEnv().env['PARSE_MASTERKEY'], // Required for Back4App and others
       // clientKey: keyParseClientKey, // Required for some setups
-      debug: true, // When enabled, prints logs to console
+      debug: false, // When enabled, prints logs to console
       // liveQueryUrl: keyLiveQueryUrl, // Required if using LiveQuery
       autoSendSessionId: true, // Required for authentication and ACL
       // securityContext: securityContext, // Again, required for some setups
@@ -66,16 +66,17 @@ Future<void> loginOrSignup(userId, userPassword) async {
   }
 }
 
-Future<void> createGameSession(String name, String playerName) async {
+Future<void> createGameSession(String name) async {
   print("creating gameSession $name");
   ParseUser user = await ParseUser.currentUser();
   ParseObject gameSession = ParseObject('GameSession')
     ..set('name', name)
     ..set('owner', user);
-  gameSession.save();
+  return gameSession.save();
 }
 
-Future<void> joinGameSession(String name, String playerName) async {
+Future<void> joinGameSession(String name, String playerName,
+    [bool asHunter = true]) async {
   QueryBuilder<ParseObject> query =
       QueryBuilder<ParseObject>(ParseObject('GameSession'))
         ..whereEqualTo('name', name);
@@ -85,7 +86,7 @@ Future<void> joinGameSession(String name, String playerName) async {
     ParseUser user = await ParseUser.currentUser();
 
     ParseObject player = ParseObject('Player')
-      ..set("isHunter", false)
+      ..set("isHunter", asHunter)
       ..set("playerName", playerName)
       ..set("user", user);
     player.save();
@@ -95,28 +96,33 @@ Future<void> joinGameSession(String name, String playerName) async {
 }
 
 Future<bool> isGameNameAvailable(String value) async {
-  print("Checking if game name taaaken");
+  print("Is game name $value available?");
   QueryBuilder<ParseObject> query =
       QueryBuilder<ParseObject>(ParseObject('GameSession'))
         ..whereEqualTo('name', value);
 
   var apiResponse = await query.query();
   if (apiResponse.success) {
-    return Future.value(apiResponse.count == 0);
+    bool available = apiResponse.count == 0;
+    print("Yes! game name $value is available on parse server");
+    return Future.value(available);
   }
   return Future.error(
       'HEEEELVETE!! ITS ALL GUNNARS FAULT! BUT THIS WENT WRONG. SORRY. CANT HELP IT. DONT CRY. PLEASE.');
 }
 
+// TODO: Only check inside current gamesession. We allow duplicate names in different sessions!
 Future<bool> isPlayerNameAvailable(String value) async {
-  print("Checking if player name taaaken");
+  print("Is player name $value available? ");
   QueryBuilder<ParseObject> query =
       QueryBuilder<ParseObject>(ParseObject('Player'))
         ..whereEqualTo('playerName', value);
 
   var apiResponse = await query.query();
   if (apiResponse.success) {
-    return Future.value(apiResponse.count == 0);
+    bool available = apiResponse.count == 0;
+    print("Yes! playername $value is available on parse server");
+    return Future.value(available);
   }
   return Future.error('HEEEELVETE!!');
 }

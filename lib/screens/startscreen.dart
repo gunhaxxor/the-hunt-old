@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gunnars_test/data/GameModel.dart';
 // import 'package:gunnars_test/main.dart';
 
 import 'package:gunnars_test/services/parseServerInteractions.dart';
+import 'package:provider/provider.dart';
 
 class StartScreen extends StatefulWidget {
   @override
@@ -9,9 +11,11 @@ class StartScreen extends StatefulWidget {
 }
 
 class StartScreenState extends State<StartScreen> {
+  // ONLY UI STATE HERE!!!!
+  // GAME STATE IN GAME MODEL!!!!
   bool _gameNameAvailable = false;
   bool _playerNameAvailable = false;
-  String _sessionName = "";
+  String _gameName = "";
   String _playerName = "";
 
   @override
@@ -26,18 +30,33 @@ class StartScreenState extends State<StartScreen> {
     });
   }
 
-  void _onClickHostGame() async {
-    await createGameSession(_sessionName, _playerName);
-    Navigator.pushReplacementNamed(context, '/lobby');
+  void _onClickHostGame(GameModel state) async {
+    try {
+      await createGameSession(_gameName);
+      await joinGameSession(_gameName, _playerName);
+      state.gameState = GameState.lobby;
+      state.myPlayer = Player(name: _playerName);
+      state.addPlayerToGameSession(state.myPlayer);
+
+      Navigator.pushReplacementNamed(context, '/lobby');
+    } catch (error) {
+      print("fuck you!!");
+      print(error);
+    }
   }
 
-  void _onClickJoinGame() async {
-    await joinGameSession(_sessionName, _playerName);
+  void _onClickJoinGame(GameModel state) async {
+    await joinGameSession(_gameName, _playerName);
+    state.gameState = GameState.lobby;
+    state.myPlayer = Player(name: _playerName);
+    state.addPlayerToGameSession(state.myPlayer);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
 
   @override
   Widget build(BuildContext context) {
+    final GameModel gameModel = Provider.of<GameModel>(context, listen: true);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('The Hunt'),
@@ -57,10 +76,10 @@ class StartScreenState extends State<StartScreen> {
                       "The Hunt",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 72,
+                        fontSize: 30,
                         foreground: Paint()
-                          ..style = PaintingStyle.stroke
-                          ..strokeWidth = 4
+                          // ..style = PaintingStyle.stroke
+                          ..strokeWidth = 2
                           ..color = Colors.orange[600],
                       ),
                     ),
@@ -90,9 +109,9 @@ class StartScreenState extends State<StartScreen> {
                           labelText: 'Player Name',
                         ),
                         onChanged: (value) async {
-                          bool free = await isPlayerNameAvailable(value);
+                          var available = await isPlayerNameAvailable(value);
                           setState(() {
-                            _playerNameAvailable = free;
+                            _playerNameAvailable = available;
                             _playerName = value;
                           });
                         },
@@ -105,11 +124,10 @@ class StartScreenState extends State<StartScreen> {
                           labelText: 'Game Name',
                         ),
                         onChanged: (value) async {
-                          bool free = await isGameNameAvailable(value);
-                          print(free);
+                          var available = await isGameNameAvailable(value);
                           setState(() {
-                            _gameNameAvailable = free;
-                            _sessionName = value;
+                            _gameNameAvailable = available;
+                            _gameName = value;
                           });
                         },
                       ),
@@ -120,17 +138,21 @@ class StartScreenState extends State<StartScreen> {
                         RaisedButton(
                             color: Colors.orange[700],
                             child: Text('Host'),
-                            onPressed:
-                                _gameNameAvailable && _sessionName.isNotEmpty
-                                    ? _onClickHostGame
-                                    : null),
+                            onPressed: _gameNameAvailable &&
+                                    _gameName.isNotEmpty &&
+                                    _playerNameAvailable &&
+                                    _playerName.isNotEmpty
+                                ? () => _onClickHostGame(gameModel)
+                                : null),
                         RaisedButton(
                             color: Colors.orange[700],
                             child: Text('Join'),
-                            onPressed:
-                                _gameNameAvailable && _sessionName.isEmpty
-                                    ? null
-                                    : _onClickJoinGame),
+                            onPressed: !_gameNameAvailable &&
+                                    _gameName.isNotEmpty &&
+                                    _playerNameAvailable &&
+                                    _playerName.isNotEmpty
+                                ? () => _onClickJoinGame(gameModel)
+                                : null),
                       ],
                     )
                   ],

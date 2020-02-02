@@ -202,112 +202,106 @@ class GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<LocationService>(
-        create: (context) => LocationService(),
-        child: MaterialApp(
-          title: 'The Hunt',
-          theme: new ThemeData(
-            primarySwatch: Colors.amber,
-          ),
-          home: Scaffold(
-            appBar: AppBar(
-              title: const Text('The Hunt'),
-              actions: <Widget>[
-                Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
-                Switch(value: _isPrey, onChanged: _onClickRole),
-                Consumer<LocationService>(
-                  builder: (context, locationService, child) {
-                    return Center(
-                        child: Text(locationService.enabled ? 'PÅ' : 'AV'));
-                  },
-                ),
-                Consumer<LocationService>(
-                  builder: (context, locationService, child) {
-                    return Switch(
-                        value: locationService.enabled,
-                        onChanged: locationService.onClickEnable);
-                  },
-                )
-              ],
-            ),
-            // body: MapSample(_controller),
-            body: GoogleMap(
-              initialCameraPosition:
-                  MapUtil.createCameraFromPosition(57.708870, 11.974560),
-              mapType: MapType.normal,
-              onMapCreated: (GoogleMapController controller) {
-                controller.setMapStyle(_mapStyle).then((_) {
-                  print("styling map!!!");
-                }).catchError((error) {
-                  print("ERROR while styling map");
-                  return null;
-                });
-                _controller = controller;
+      create: (context) => LocationService(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('The Hunt'),
+          actions: <Widget>[
+            Center(child: Text(_isPrey ? 'Prey' : 'Hunter')),
+            Switch(value: _isPrey, onChanged: _onClickRole),
+            Consumer<LocationService>(
+              builder: (context, locationService, child) {
+                return Center(
+                    child: Text(locationService.enabled ? 'PÅ' : 'AV'));
               },
-              markers: Set<Marker>.of(markers.values),
-              circles: Set<Circle>.of(circles.values),
             ),
-            floatingActionButton: Consumer<LocationService>(
+            Consumer<LocationService>(
+              builder: (context, locationService, child) {
+                return Switch(
+                    value: locationService.enabled,
+                    onChanged: locationService.onClickEnable);
+              },
+            )
+          ],
+        ),
+        // body: MapSample(_controller),
+        body: GoogleMap(
+          initialCameraPosition:
+              MapUtil.createCameraFromPosition(57.708870, 11.974560),
+          mapType: MapType.normal,
+          onMapCreated: (GoogleMapController controller) {
+            controller.setMapStyle(_mapStyle).then((_) {
+              print("styling map!!!");
+            }).catchError((error) {
+              print("ERROR while styling map");
+              return null;
+            });
+            _controller = controller;
+          },
+          markers: Set<Marker>.of(markers.values),
+          circles: Set<Circle>.of(circles.values),
+        ),
+        floatingActionButton: Consumer<LocationService>(
+            builder: (context, locationService, child) {
+          return FloatingActionButton(
+            child: Icon(Icons.gps_fixed),
+            onPressed: () => MapUtil.moveMapViewToLocation(
+                _controller, locationService.mostRecentLocation),
+          );
+        }),
+        bottomNavigationBar: BottomAppBar(
+          child: Container(
+              padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+              child: Consumer<LocationService>(
                 builder: (context, locationService, child) {
-              return FloatingActionButton(
-                child: Icon(Icons.gps_fixed),
-                onPressed: () => MapUtil.moveMapViewToLocation(
-                    _controller, locationService.mostRecentLocation),
-              );
-            }),
-            bottomNavigationBar: BottomAppBar(
-              child: Container(
-                  padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                  child: Consumer<LocationService>(
-                    builder: (context, locationService, child) {
-                      return Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            IconButton(
-                              icon: Icon(Icons.gps_not_fixed),
-                              onPressed: () =>
-                                  locationService.getCurrentPosition(),
-                            ),
-                            // Text('$_motionActivity · $_odometer km'),
-                            FlatButton(
-                              child: const Text('Start'),
-                              onPressed: _startCountdown,
-                            ),
-                            FlatButton(
-                              child: const Text('Quit'),
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(context, '/');
-                              },
-                            ),
-                            FlatButton(
-                              child: const Text('add'),
-                              onPressed: () => _addCircle(
-                                  locationService
-                                      .mostRecentLocation.coords.latitude,
-                                  locationService
-                                      .mostRecentLocation.coords.longitude,
-                                  false),
-                            ),
-                            FlatButton(
-                              child: const Text('clear'),
-                              onPressed: _clearCircles,
-                            ),
-                            MaterialButton(
-                                minWidth: 50.0,
-                                child: Icon(
-                                    (locationService.isMoving)
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                    color: Colors.white),
-                                color: (locationService.isMoving)
-                                    ? Colors.red
-                                    : Colors.green,
-                                onPressed: locationService.onClickChangePace)
-                          ]);
-                    },
-                  )),
-            ),
-          ),
-        ));
+                  return Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        IconButton(
+                          icon: Icon(Icons.gps_not_fixed),
+                          onPressed: () => locationService.getCurrentPosition(),
+                        ),
+                        // Text('$_motionActivity · $_odometer km'),
+                        FlatButton(
+                          child: const Text('Start'),
+                          onPressed: _startCountdown,
+                        ),
+                        FlatButton(
+                          child: const Text('Quit'),
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, '/');
+                          },
+                        ),
+                        FlatButton(
+                          child: const Text('add'),
+                          onPressed: () => _addCircle(
+                              locationService
+                                  .mostRecentLocation.coords.latitude,
+                              locationService
+                                  .mostRecentLocation.coords.longitude,
+                              false),
+                        ),
+                        FlatButton(
+                          child: const Text('clear'),
+                          onPressed: _clearCircles,
+                        ),
+                        MaterialButton(
+                            minWidth: 50.0,
+                            child: Icon(
+                                (locationService.isMoving)
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                color: Colors.white),
+                            color: (locationService.isMoving)
+                                ? Colors.red
+                                : Colors.green,
+                            onPressed: locationService.onClickChangePace)
+                      ]);
+                },
+              )),
+        ),
+      ),
+    );
   }
 }
