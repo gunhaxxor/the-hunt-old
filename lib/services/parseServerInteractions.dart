@@ -1,4 +1,4 @@
-import 'package:gunnars_test/data/GameModel.dart';
+// import 'package:gunnars_test/data/GameModel.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -67,7 +67,6 @@ Future<void> loginOrSignup(userId, userPassword) async {
 }
 
 Future<void> createGameSession(String name, String playerName) async {
-  // TODO create player
   print("creating gameSession $name");
   ParseUser user = await ParseUser.currentUser();
   ParseObject gameSession = ParseObject('GameSession')
@@ -173,10 +172,6 @@ Future<List<dynamic>> getLocationsForGameSession(
   if (apiResponse.success && apiResponse.count > 0) {
     print("\\\\\\\\\\\\\\");
     print(apiResponse.count);
-    for (var testObject in apiResponse.result) {
-      //print("Parse result: " + testObject.toString());
-      //print("/////");
-    }
 
     return apiResponse.results;
   }

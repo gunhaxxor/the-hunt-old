@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gunnars_test/main.dart';
+// import 'package:gunnars_test/main.dart';
 
 class LobbyScreen extends StatelessWidget {
   @override
@@ -17,7 +17,7 @@ class LobbyScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(top: 20.0, bottom: 0.0),
                 child: Row(
-                  mainAxisAlignment :MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
                       "The Hunt",
@@ -28,7 +28,7 @@ class LobbyScreen extends StatelessWidget {
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 2
                           ..color = Colors.orange[700],
-                      ),  
+                      ),
                     ),
                   ],
                 ),
@@ -36,20 +36,20 @@ class LobbyScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
                 child: Row(
-                  mainAxisAlignment :MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
                       "Lobby",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
-                      ),  
+                      ),
                     ),
                   ],
                 ),
               ),
               Expanded(
-                child:Container(
+                child: Container(
                   child: Column(
                     children: <Widget>[
                       Row(
@@ -57,11 +57,15 @@ class LobbyScreen extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             "Player name",
-                            style: TextStyle(fontWeight: FontWeight.bold,),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
                             "Hunter/Prey",
-                            style: TextStyle(fontWeight: FontWeight.bold,),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -75,15 +79,14 @@ class LobbyScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      
                     ],
                   ),
                 ),
               ),
               Container(
-                  padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+                padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly ,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     RaisedButton(
                       color: Colors.orange[100],

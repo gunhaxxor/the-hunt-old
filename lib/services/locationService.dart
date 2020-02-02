@@ -4,11 +4,11 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
     as bg;
 import 'package:gunnars_test/data/gameModel.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 
 class LocationService with ChangeNotifier {
   // Keep track of current player Location
-  PlayerLocation _currentPlayerLocation;
+  Location _currentPlayerLocation;
 
   bg.Location mostRecentLocation;
 
@@ -16,7 +16,7 @@ class LocationService with ChangeNotifier {
   var enabled = false;
 
   // Manually fetch the current position.
-  Future<void> GetCurrentPosition() async {
+  Future<void> getCurrentPosition() async {
     try {
       bg.Location loc = await bg.BackgroundGeolocation.getCurrentPosition(
           persist: true, // <-- do not persist this location
@@ -25,11 +25,11 @@ class LocationService with ChangeNotifier {
           samples: 3 // <-- sample 3 location before selecting best.
           );
       this.mostRecentLocation = loc;
-      this._currentPlayerLocation = PlayerLocation(
-      latitude: loc.coords.latitude,
-      longitude: loc.coords.longitude,
-      heading: loc.coords.heading,
-      speed: loc.coords.speed);
+      this._currentPlayerLocation = Location(
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          heading: loc.coords.heading,
+          speed: loc.coords.speed);
 
       print('[getCurrentPosition] - $loc');
       return _currentPlayerLocation;
@@ -40,7 +40,7 @@ class LocationService with ChangeNotifier {
   }
 
   // Manually toggle the tracking state:  moving vs stationary
-  void OnClickChangePace() {
+  void onClickChangePace() {
     this.isMoving = !this.isMoving;
     print("[onClickChangePace] -> $isMoving");
 
@@ -52,7 +52,7 @@ class LocationService with ChangeNotifier {
     notifyListeners();
   }
 
-  void OnClickEnable(enabled) {
+  void onClickEnable(enabled) {
     if (enabled) {
       bg.BackgroundGeolocation.start().then((bg.State state) {
         print('[start] success $state');
@@ -65,7 +65,7 @@ class LocationService with ChangeNotifier {
         // Reset odometer.
         bg.BackgroundGeolocation.setOdometer(0.0);
 
-          // _odometer = '0.0';
+        // _odometer = '0.0';
         this.enabled = state.enabled;
         this.isMoving = state.isMoving;
       });
@@ -80,7 +80,8 @@ class LocationService with ChangeNotifier {
 
   LocationService() {
     // 1.  Listen to events (See docs for all 12 available events).
-    bg.BackgroundGeolocation.onLocation(this._onLocation, (bg.LocationError error) {
+    bg.BackgroundGeolocation.onLocation(this._onLocation,
+        (bg.LocationError error) {
       print("locationError] - $error");
     });
     bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
@@ -98,8 +99,8 @@ class LocationService with ChangeNotifier {
             logLevel: bg.Config.LOG_LEVEL_VERBOSE,
             reset: true))
         .then((bg.State state) {
-        this.enabled = state.enabled;
-        this.isMoving = state.isMoving;
+      this.enabled = state.enabled;
+      this.isMoving = state.isMoving;
     });
   }
 
@@ -108,11 +109,11 @@ class LocationService with ChangeNotifier {
     this.mostRecentLocation = location;
 
     // Emit most recent location over our controller
-    _currentPlayerLocation = PlayerLocation(
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    heading: location.coords.heading,
-    speed: location.coords.speed);
+    _currentPlayerLocation = Location(
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        heading: location.coords.heading,
+        speed: location.coords.speed);
 
     // Here we would add it to the stream BUT WE COMMENTED IT OUT
     // this._playerLocationController.add(_currentPlayerLocation);
@@ -155,5 +156,4 @@ class LocationService with ChangeNotifier {
   void _onConnectivityChange(bg.ConnectivityChangeEvent event) {
     print('$event');
   }
-
 }

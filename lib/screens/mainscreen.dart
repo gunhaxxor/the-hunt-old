@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gunnars_test/main.dart';
+// import 'package:gunnars_test/main.dart';
 
 import 'package:gunnars_test/services/parseServerInteractions.dart';
 
@@ -16,7 +16,6 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     createUserCredentailsFromHardware().then((Map<String, String> credentials) {
       initParse(credentials["userId"], credentials["userPassword"]).then((_) {
@@ -31,6 +30,7 @@ class MainScreenState extends State<MainScreen> {
     await createGameSession(_sessionName, _playerName);
     Navigator.pushReplacementNamed(context, '/lobby');
   }
+
   void _onClickJoinGame() async {
     await joinGameSession(_sessionName, _playerName);
     Navigator.pushReplacementNamed(context, '/lobby');
@@ -64,18 +64,18 @@ class MainScreenState extends State<MainScreen> {
                           ..color = Colors.orange[600],
                       ),
                     ),
-                    Text(
-                      "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the prey to catch it.",
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      "Come up with a name and host a game, or fill in the name of an existing game and join it.",
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
+                    // Text(
+                    //   "Are you ready for some action? One player is the prey, who needs to go to all waypoints. The other players are hunters, who try to get close enough to the prey to catch it.",
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //   ),
+                    // ),
+                    // Text(
+                    //   "Come up with a name and host a game, or fill in the name of an existing game and join it.",
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -121,12 +121,16 @@ class MainScreenState extends State<MainScreen> {
                             color: Colors.orange[700],
                             child: Text('Host'),
                             onPressed:
-                                _gameNameAvailable && _sessionName.isNotEmpty ? _onClickHostGame : null),
+                                _gameNameAvailable && _sessionName.isNotEmpty
+                                    ? _onClickHostGame
+                                    : null),
                         RaisedButton(
-                          color: Colors.orange[700],
-                          child: Text('Join'),
-                          onPressed: _gameNameAvailable && _sessionName.isEmpty ? null : _onClickJoinGame
-                        ),
+                            color: Colors.orange[700],
+                            child: Text('Join'),
+                            onPressed:
+                                _gameNameAvailable && _sessionName.isEmpty
+                                    ? null
+                                    : _onClickJoinGame),
                       ],
                     )
                   ],
